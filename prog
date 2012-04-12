@@ -1,0 +1,6 @@
+x:= 6;
+
+begin
+if not -x<3 and +2>0 then x+3 else x +4
+end
+
