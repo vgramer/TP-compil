@@ -25,7 +25,7 @@ int keywordOrId() {
    * produire une nouvelle version de tp_y.h qui fait partie des #include
    * ci-dessus
    */
-  if (! strcmp(yytext, "begin")) return(BEG);
+  if (! strcmp(yytext, "DEBUT")) return(BEG);
   if (! strcmp(yytext, "end")) return(END);
   if (! strcmp(yytext, "if")) return(IF);
   if (! strcmp(yytext, "then")) return(THEN);
