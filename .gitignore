@@ -1,0 +1,7 @@
+*~ 
+tp*.exe* 
+tp 
+tp_lex 
+*.o 
+tp_l.* 
+tp_y.*
