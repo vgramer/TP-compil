@@ -5,11 +5,10 @@
  */
 %token BEG END
 %token<D> AFF
-%token<S> ID STR
+%token<S> ID STR VAR
 %token<I> CST
 %token<C> RELOP
 %token IF THEN ELSE
-%token PUT
 %token GET
 %token AND
 %token OR
@@ -18,7 +17,6 @@
 
 /*ici on "declare les non terminaux"*/
 %type <T> expr;
-%type <T> put;
 %type <T> get;
 %type <T> ifThen;
 %type <T> cond;
@@ -28,7 +26,7 @@
  * operateurs sur une meme ligne (separes par un espace) ont la meme priorite.
  */
 %left IF THEN ELSE
-%left PUT GET
+%left GET
 %left ADD SUB
 %left MUL DIV
 %left AND OR
@@ -86,7 +84,6 @@ $$ est le noeud courrant au quel on va ajouter l' AST produite par la regle
 $2..n sont les composantes(fils) de l'arbre que nous somme en train de construire, ce sont deja des AST
 */ 
 expr : ifThen
-| put
 | get
 | ADD expr {$$ = makeTree(PLUS, 1, $2);}
 | SUB expr {$$ = makeTree(MINUS, 1, $2);}
@@ -111,11 +108,6 @@ les operateurs boolean ne sont pas definie sur les entiers ex: "not 3" n'a de se
 
 ifThen : IF cond THEN expr ELSE expr
 {$$ =  makeTree(IF, 3, $2,$4, $6);}
-;
-
-put: PUT '(' STR ',' expr ')'
-/*STR est un terminal donc on doit donc creer une feuille*/
-{$$ = makeTree(PUT, 2, makeLeafStr(STR,$3),$5);}
 ;
 
 get: GET '(' ')'
