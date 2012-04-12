@@ -30,11 +30,9 @@ int keywordOrId() {
   if (! strcmp(yytext, "SI")) return(IF);
   if (! strcmp(yytext, "ALORS")) return(THEN);
   if (! strcmp(yytext, "SINON")) return(ELSE);
-  if (! strcmp(yytext, "put")) return(PUT);
+  if (! strcmp(yytext, "ECRIRE")) return(PUT);
   if (! strcmp(yytext, "get")) return(GET);
-  if (! strcmp(yytext, "and")) return(AND);
-  if (! strcmp(yytext, "or")) return(OR);
-  if (! strcmp(yytext, "not")) return(NOT);
+  if (! strcmp(yytext, "VAR")) return(VARDECL);
   /* si ce n'est pas un mot-clef, sauvegarder le texte de l'identificateur
    * et renvoyer le token associe aux identificateurs
    */
@@ -81,9 +79,11 @@ void lexError(char c) {
 "="             { /* Voir la liste des etiquettes dans tp.h */
                   yylval.C = EQ; return(RELOP);
                 }
-"<>"            { yylval.C = NE; return(RELOP); }
+"!="            { yylval.C = NE; return(RELOP); }
 ">"             { yylval.C = GT; return(RELOP); }
+">="             { yylval.C = GE; return(RELOP); }
 "<"             { yylval.C = LT; return(RELOP); }
+"<="             { yylval.C = LE; return(RELOP); }
 {Symbol}        { /* Completer la liste des symboles necessaires */
                   return(yytext[0]);
                 }

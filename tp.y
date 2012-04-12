@@ -9,10 +9,11 @@
 %token<I> CST
 %token<C> RELOP
 %token IF THEN ELSE
-%token GET
+%token PUT
 %token AND
 %token OR
 %token NOT
+%token VARDECL
 
 
 /*ici on "declare les non terminaux"*/
