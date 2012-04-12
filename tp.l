@@ -27,9 +27,9 @@ int keywordOrId() {
    */
   if (! strcmp(yytext, "DEBUT")) return(BEG);
   if (! strcmp(yytext, "FIN")) return(END);
-  if (! strcmp(yytext, "if")) return(IF);
-  if (! strcmp(yytext, "then")) return(THEN);
-  if (! strcmp(yytext, "else")) return(ELSE);
+  if (! strcmp(yytext, "SI")) return(IF);
+  if (! strcmp(yytext, "ALORS")) return(THEN);
+  if (! strcmp(yytext, "SINON")) return(ELSE);
   if (! strcmp(yytext, "put")) return(PUT);
   if (! strcmp(yytext, "get")) return(GET);
   if (! strcmp(yytext, "and")) return(AND);
