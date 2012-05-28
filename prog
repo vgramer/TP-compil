@@ -3,12 +3,19 @@ VAR y:= 1;
 DEBUT
 /* debut du programme :
  * Instruction 1 */
+x := x+3;
+
+y := y+1;
 SI x<3
 ALORS x+3
 SINON x +4
-/*fin du programme */
 FINDESI
 
+ECRIRE(1,2,3,"toto",4,5,6);
+/*POUR x ALLANTDE 1 A 10 FAIRE
+	x := x+3;
+FINPOUR*/
+/*fin du programme */
 FIN
 
 /* toto

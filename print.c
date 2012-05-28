@@ -48,8 +48,8 @@ void pprintIf(TreeP tree) {
 void pprintPUT(TreeP tree) {
   printf("(put( ");
   pprint(getChild(tree, 0));
-  printf(" , ");
-  pprint(getChild(tree, 1));
+  /*printf(" , ");
+  pprint(getChild(tree, 1));*/
   printf("))");
 }
 
@@ -86,6 +86,9 @@ void pprint(TreeP tree) {
   case DIV:   pprintTree2(tree, " / "); break;
   case AND:   pprintTree2(tree, " and "); break;
   case OR:    pprintTree2(tree, " or "); break;
+  case AFF:   pprintTree2(tree, " := "); break;
+  case INSTRL:pprintTree2(tree, " \n "); break; 
+  case ARGL:  pprintTree2(tree, ", "); break;
   case PUT:   pprintPUT(tree); break;
   case GET:   pprintGet(); break;
   case NOT:   pprintUnaire(tree, "not"); break;

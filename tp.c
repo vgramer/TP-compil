@@ -253,6 +253,21 @@ int evalVar(TreeP tree, VarDeclP decls) {
   exit(UNEXPECTED);
 }
 
+/* Evaluation d'une affectation */
+int evalAff(TreeP tree, VarDeclP decls) {
+  char *name = getChild(tree,0)->u.str;
+  VarDeclP parcours = decls;
+  while (parcours != NIL(VarDecl)) {
+    if (! strcmp(parcours->name, name)) {
+		parcours->val = eval(getChild(tree,1),decls);
+		return(parcours->val);
+	}
+    parcours = parcours->next;
+  }
+  /* ne doit pas arriver si on a verifie les ident. avant l'evaluation */
+  fprintf(stderr, "Unexpected: Undeclared variable: %s\n", name);
+  exit(UNEXPECTED);
+}
 
 /* Evaluation d'un if then else 
  * le premier fils represente la condition,
@@ -267,6 +282,56 @@ int evalIf(TreeP tree, VarDeclP decls) {
   }
 }
 
+/*evalusation de la boucle 'pour' (reevalue les bornes à chaque iteration)*/
+int evalFor(TreeP tree, VarDeclP decls){
+	int last = 0;
+	int debut = 0;
+	int pas = 0;
+	int i=0;
+	TreeP instr = getChild(tree,3);
+	TreeP fin = getChild(tree,2);
+	TreeP init = getChild(tree,1);
+	TreeP var = getChild(tree,0);
+	declVar(var->u.str,instr);
+	for(i=eval(init,decls);
+	    i!=eval(fin,decls);
+	    i+=pas){
+		eval(instr,decls);
+		if(eval(fin,decls)>=debut){
+			pas = 1;
+		} else {
+			pas = -1;
+		}
+	}
+	freeVar(decls);
+	return last;
+}
+/* evaluer l'arbre des instructions tant que l'évaluation de l'arbre des
+ * conditions ne retourne pas 0 */
+int evalPut(TreeP content, VarDeclP decls){
+	if(content->op == ARGL){
+		evalPut(getChild(content,0),decls);
+		evalPut(getChild(content,1),decls);
+	} else {
+		if(content->op == STR)
+			printf("%s",content->u.str);
+		else
+			printf("%d",eval(content,decls));
+	}
+	return 0;
+}
+/* evaluer l'arbre des instructions tant que l'évaluation de l'arbre des
+ * conditions ne retourne pas 0 */
+int evalDoWhile(TreeP tree, VarDeclP decls){
+	int last = 0;
+	TreeP instr = getChild(tree,0);
+	TreeP cond = getChild(tree,1);
+	do{
+		last = eval(instr,decls);
+	}while(eval(cond, decls));
+	
+	return last;
+}
 /* Evaluation par parcours recursif de l'arbre representant une expression. 
  * Les valeurs des identificateurs situes aux feuilles de l'arbre sont a
  * rechercher dans la liste decls
@@ -277,6 +342,9 @@ int eval(TreeP tree, VarDeclP decls) {
   switch (tree->op) {
   case ID:
     return evalVar(tree, decls);
+  case INSTRL:
+	eval(getChild(tree,0),decls);
+	return eval(getChild(tree,1),decls);
   case CST:
     return(tree->u.val);
   case EQ:
@@ -306,6 +374,7 @@ int eval(TreeP tree, VarDeclP decls) {
         fprintf(stderr, "erreur: Division par zero\n"); exit(EVAL_ERROR);
       } else { return (res / res2); }
     }
+    
   case MINUS:
     return (-eval(getChild(tree, 0), decls));
   
@@ -317,21 +386,27 @@ int eval(TreeP tree, VarDeclP decls) {
        si il est vrai evaluer l'opererand droit.  Nous codons en c donc la spec est respectee.
      */
     return (eval(getChild(tree, 0), decls) && eval(getChild(tree, 1), decls));
-  
   case OR:
     return (eval(getChild(tree, 0), decls) || eval(getChild(tree, 1), decls));
-
   case NOT:
     return ! eval(getChild(tree, 0), decls) ;
-
   case IF:
-    return evalIf(tree, decls);
+    return (evalIf(tree, decls));
+  case AFF:
+	return (evalAff(tree,decls));
   case GET:
-    return(getValue());
+    return (getValue());
   case PUT:
-    return(putValue(getChild(tree, 0)->u.str, eval(getChild(tree, 1), decls)));
+    return (evalPut(getChild(tree,0),decls));
+  case ARGL:
+	eval(getChild(tree,0),decls);
+	return eval(getChild(tree,1),decls);
+  case POUR:
+	return (evalFor(tree,decls));
+  case FAIRE:
+	return (evalDoWhile(tree,decls));
   default: 
-    fprintf(stderr, "erreur! Eval unknown operator label(eval tp.c ): %d\n", tree->op);
+    fprintf(stderr, "erreur #1! Eval unknown operator label(eval tp.c ): %d\n", tree->op);
     exit(UNEXPECTED);
   }
 }
@@ -366,21 +441,21 @@ void checkId(TreeP tree, VarDeclP decls) {
     return;
   case CST:
   case GET:
+  case AFF: case INSTRL: case ARGL:
   case EQ: case NE: case GT: case GE: case LT: case LE:
   case ADD: case SUB: case MUL: case DIV:case AND:case OR:case NOT:
-  case MINUS:case PLUS:
+  case MINUS:case PLUS: case STR:
   case IF:
     for(i=0; i < tree->nbChildren; i++) 
     {
 	checkId(getChild(tree, i), decls); 
     }
-    return;
- 
+    return;	
   case PUT:
-    checkId(getChild(tree, 1), decls);
+    checkId(getChild(tree, 0), decls);
     return;
   default: 
-    fprintf(stderr, "erreur! Eval unknown operator label(check id tp.c): %d\n", tree->op);
+    fprintf(stderr, "erreur #2! Eval unknown operator label(check id tp.c): %d\n", tree->op);
     exit(UNEXPECTED);
   }
 }

@@ -4,6 +4,7 @@
  * suivante. Ce sont donc ces lignes qu'il faut adapter si besoin, pas tp_y.h !
  */
 %token BEG END
+%token INSTRL ARGL
 %token<D> AFF
 %token<S> ID STR VAR
 %token<I> CST
@@ -24,8 +25,6 @@
 %token FINPOUR
 %token TANTQUE
 %token FINTANTQUE
-/* token pour la creation d'un arbre de parametres */
-%token ARGL
 
 
 /*ici on "declare les non terminaux"*/
@@ -72,7 +71,7 @@ puis on traite l'operation l' expression principale
 	- puis on evalu cette AST (fonction eval dans tp.c)
 
 */
-programme : declLO BEG instr END {evalMain($3);}
+programme : declLO BEG instrL END {evalMain($3);}
 ;
 
 /* les declarations de variables etant memorisees dans une variable globale,
@@ -131,11 +130,12 @@ ifThen : IF cond THEN expr ELSE expr ENDIF
 ;
 
 /* regles pour definir les valeurs des parametres */
-argL : arg {$$ = makeTree(ARGL,1,$1); }
+argL : arg
 | argL ',' arg {$$ = makeTree(ARGL,2,$1,$3); }
 ;
 
 arg : expr
+| STR {$$ = makeLeafStr(STR,$1);}
 ;
 
 /* regle pour l'equivalent du 'printf */
@@ -149,18 +149,19 @@ get: GET '(' ')'
 ;
 
 /* les boucles sont dcrites pas la regle suivante */
-loop: POUR ID ALLANTDE expr JUSQUA expr FAIRE instrL FINPOUR { $$ = makeTree(POUR,4,$2,$4,$6,$8);}
+loop: POUR ID ALLANTDE expr JUSQUA expr FAIRE instrL FINPOUR { $$ = makeTree(POUR,4,makeLeafStr(ID,$2),$4,$6,$8);}
 | FAIRE instrL TANTQUE cond FINTANTQUE { $$ = makeTree(FAIRE,2,$2,$4);}
-| TANTQUE cond FAIRE instrL FINTANTQUE { $$ = makeTree(TANTQUE,2,$2,$4);};
+| TANTQUE cond FAIRE instrL FINTANTQUE { $$ = makeTree(TANTQUE,2,$2,$4);}
+;
 
 /* listes d'instructions */
 instrL: instr
-| instrL instr
+| instrL instr { $$ = makeTree(INSTRL,2,$1,$2);}
 ;
 
 
 /* une declaration de variable ou de fonction, terminee par un ';'. */
-instr : ID AFF expr ';' {$$ = makeTree(AFF,2,$1,$3);}
+instr : ID AFF expr ';' {$$ = makeTree(AFF,2,makeLeafStr(ID,$1),$3);}
 | loop
 | put ';'
 | ifThen

@@ -163,6 +163,9 @@ int main(int argc, char **argv) {
     case ADD:case SUB:case MUL:case DIV:	
       if (verbose) printf("Oper arithmetique:\t%s\n", yytext);
       break;
+    case VARDECL:
+	  if (verbose) printf("Operateur de declaration:\t%s\n", yytext);
+      break;
     case RELOP:
       /* inutilement complique ici, mais sert a illustrer la difference
        * entre le token et l'information supplementaire qu'on peut associer
@@ -182,7 +185,7 @@ int main(int argc, char **argv) {
       }
       break;
     default:
-      printf("Token non reconnu pzt le programme de test(a definir dans tp_lex):\t\"%c\"\n", token);
+      printf("Token non reconnu pzt le programme de test(a definir dans tp_lex):\t\"%c\"(%d)\n", token, token);
     }
   }
 }
