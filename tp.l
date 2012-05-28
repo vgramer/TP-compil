@@ -30,7 +30,15 @@ int keywordOrId() {
   if (! strcmp(yytext, "SI")) return(IF);
   if (! strcmp(yytext, "ALORS")) return(THEN);
   if (! strcmp(yytext, "SINON")) return(ELSE);
+  if (! strcmp(yytext, "FINDESI")) return(ENDIF);
   if (! strcmp(yytext, "ECRIRE")) return(PUT);
+  if (! strcmp(yytext, "POUR")) return(POUR);
+  if (! strcmp(yytext, "ALLANTDE")) return(ALLANTDE);
+  if (! strcmp(yytext, "A")) return(JUSQUA);
+  if (! strcmp(yytext, "FAIRE")) return(FAIRE);
+  if (! strcmp(yytext, "FINPOUR")) return(FINPOUR);
+  if (! strcmp(yytext, "TANTQUE")) return(TANTQUE);
+  if (! strcmp(yytext, "FINTANTQUE")) return(FINTANTQUE);
   if (! strcmp(yytext, "get")) return(GET);
   if (! strcmp(yytext, "VAR")) return(VARDECL);
   /* si ce n'est pas un mot-clef, sauvegarder le texte de l'identificateur
@@ -84,6 +92,14 @@ void lexError(char c) {
 ">="             { yylval.C = GE; return(RELOP); }
 "<"             { yylval.C = LT; return(RELOP); }
 "<="             { yylval.C = LE; return(RELOP); }
+
+"|"             { yylval.C = LE; return(BINOR); }
+"&"             { yylval.C = LE; return(BINAND); }
+"^"             { yylval.C = LE; return(BINXOR); }
+"||"             { yylval.C = LE; return(OR); }
+"&&"             { yylval.C = LE; return(AND); }
+"!"             { yylval.C = LE; return(NOT); }
+
 {Symbol}        { /* Completer la liste des symboles necessaires */
                   return(yytext[0]);
                 }

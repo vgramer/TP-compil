@@ -8,25 +8,43 @@
 %token<S> ID STR VAR
 %token<I> CST
 %token<C> RELOP
-%token IF THEN ELSE
+%token IF THEN ELSE ENDIF
 %token PUT
+%token BINAND
+%token BINOR
+%token BINXOR
 %token AND
 %token OR
 %token NOT
 %token VARDECL
+%token POUR
+%token ALLANTDE
+%token JUSQUA
+%token FAIRE
+%token FINPOUR
+%token TANTQUE
+%token FINTANTQUE
+/* token pour la creation d'un arbre de parametres */
+%token ARGL
 
 
 /*ici on "declare les non terminaux"*/
+%type <T> loop;
+%type <T> put;
+%type <T> instr;
 %type <T> expr;
 %type <T> get;
 %type <T> ifThen;
 %type <T> cond;
+%type <T> arg;
+%type <T> argL;
+%type <T> instrL;
 
 
 /* indications de precedence (en ordre croissant) et d'associativite. Les
  * operateurs sur une meme ligne (separes par un espace) ont la meme priorite.
  */
-%left IF THEN ELSE
+%left IF THEN ELSE ENDIF
 %left GET
 %left ADD SUB
 %left MUL DIV
@@ -54,7 +72,7 @@ puis on traite l'operation l' expression principale
 	- puis on evalu cette AST (fonction eval dans tp.c)
 
 */
-programme : declLO BEG expr END {evalMain($3)}
+programme : declLO BEG instr END {evalMain($3);}
 ;
 
 /* les declarations de variables etant memorisees dans une variable globale,
@@ -70,22 +88,21 @@ declL : decl
 
 
 /* une declaration de variable ou de fonction, terminee par un ';'. */
-decl : var_decl
+decl : var_decl ';'
 ;
 
 /* creer une variable: couple (clef, valeur) et l' ajoute au current scope qui contient la liste de toutes les variables
 la valeur est directement evaluee
 si la variable est deja declaree, le programme l'indique
 */
-var_decl : ID AFF expr ';'{declVar($1, $3);}
+var_decl : VARDECL ID AFF expr {declVar($2, $4);}
 ;
 
 /* ici on creer des AST 
 $$ est le noeud courrant au quel on va ajouter l' AST produite par la regle
 $2..n sont les composantes(fils) de l'arbre que nous somme en train de construire, ce sont deja des AST
 */ 
-expr : ifThen
-| get
+expr : get
 | ADD expr {$$ = makeTree(PLUS, 1, $2);}
 | SUB expr {$$ = makeTree(MINUS, 1, $2);}
 | expr ADD expr {$$ = makeTree(ADD, 2, $1,$3);}
@@ -107,14 +124,44 @@ les operateurs boolean ne sont pas definie sur les entiers ex: "not 3" n'a de se
 | NOT cond {$$ = makeTree(NOT ,1, $2);}
 ;
 
-ifThen : IF cond THEN expr ELSE expr
+ifThen : IF cond THEN expr ELSE expr ENDIF
 {$$ =  makeTree(IF, 3, $2,$4, $6);}
+| IF cond THEN expr ENDIF
+{$$ =  makeTree(IF, 2, $2,$4);}
 ;
 
+/* regles pour definir les valeurs des parametres */
+argL : arg {$$ = makeTree(ARGL,1,$1); }
+| argL ',' arg {$$ = makeTree(ARGL,2,$1,$3); }
+;
+
+arg : expr
+;
+
+/* regle pour l'equivalent du 'printf */
+put : PUT '(' argL ')'
+{$$ = makeTree(PUT,1,$3);}
+;
+
+/* regle pour l'equivalent du 'scanf' */
 get: GET '(' ')'
 {$$= makeTree(GET , 0);}
 ;
 
+/* les boucles sont dcrites pas la regle suivante */
+loop: POUR ID ALLANTDE expr JUSQUA expr FAIRE instrL FINPOUR { $$ = makeTree(POUR,4,$2,$4,$6,$8);}
+| FAIRE instrL TANTQUE cond FINTANTQUE { $$ = makeTree(FAIRE,2,$2,$4);}
+| TANTQUE cond FAIRE instrL FINTANTQUE { $$ = makeTree(TANTQUE,2,$2,$4);};
+
+/* listes d'instructions */
+instrL: instr
+| instrL instr
+;
 
 
-
+/* une declaration de variable ou de fonction, terminee par un ';'. */
+instr : ID AFF expr ';' {$$ = makeTree(AFF,2,$1,$3);}
+| loop
+| put ';'
+| ifThen
+;

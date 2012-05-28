@@ -1,6 +1,16 @@
-x:= 6;
+VAR x:= 6;
+VAR y:= 1;
+DEBUT
+/* debut du programme :
+ * Instruction 1 */
+SI x<3
+ALORS x+3
+SINON x +4
+/*fin du programme */
+FINDESI
 
-begin
-if not -x<3 and +2>0 then x+3 else x +4
-end
+FIN
 
+/* toto
+test // & xor FERznvjuzim'u_(çéfajcn'_")*$*
+*/
