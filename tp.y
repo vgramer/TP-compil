@@ -108,6 +108,9 @@ expr : get
 | expr SUB expr {$$ = makeTree(SUB, 2, $1,$3);}
 | expr MUL expr {$$ = makeTree(MUL, 2, $1,$3);}
 | expr DIV expr {$$ = makeTree(DIV, 2, $1,$3);}
+| expr BINXOR expr {$$ = makeTree(BINXOR, 2, $1, $3);}
+| expr BINOR  expr {$$ = makeTree(BINOR , 2, $1, $3);}
+| expr BINAND expr {$$ = makeTree(BINAND, 2, $1, $3);}
 | CST{ $$ = makeLeafInt(CST , $1);}
 | ID { $$ = makeLeafStr(ID,$1);}
 ;

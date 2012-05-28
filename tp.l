@@ -53,7 +53,6 @@ void lexError(char c) {
   fprintf(stderr, "Skipping invalid character: '%c' on line %d\n", c, yylineno);
 }
 
-
 /* les codes symboliques pour les unites lexicales (CST, IF, ADD, ...) sont
  * definis dans tp_y.h et serviront aussi d'etiquettes pour les sommets de
  * l'arbre de syntaxe abstraite qui sera construit par la suite du processus
@@ -76,7 +75,9 @@ void lexError(char c) {
 {Digit}+        { yylval.I = strtol(yytext, NULL, 0); return(CST); }
 {Letter}{LD}*   { return keywordOrId(); }
 
-\"({StrChar}|{StrEsc})*\" { yylval.S = strdup(yytext); return(STR); }
+\"({StrChar}|{StrEsc})*\" { yytext[strlen(yytext)-1]='\0';
+							yylval.S = strdup(yytext+1);
+							return(STR); }
 
 "/*"({NotStar}|{Star}+{NotStarSlash})*{Star}+"/" { /* Commentaire ! */ }
 ":="            { return(AFF); }

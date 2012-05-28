@@ -148,7 +148,9 @@ void yyerror(char *ignore) {
 
 /* Liberation de la variable : a faire pour de vrai si necessaire ... */
 VarDeclP freeVar(VarDeclP decls) {
+  VarDeclP old = decls;
   decls = decls->next;
+  free(old);
   return decls;
 }
 
@@ -171,7 +173,6 @@ VarDeclP addToScope(VarDeclP list, VarDeclP nouv, bool noDup) {
    */
   nouv->next=list; return nouv;
 }
-
 
 /* Construit le squelette d'un couple (variable, valeur), sans la valeur.
  * Verifie l'absence d'homonymie avec une fonction.
@@ -252,7 +253,18 @@ int evalVar(TreeP tree, VarDeclP decls) {
   fprintf(stderr, "Unexpected: Undeclared variable: %s\n", name);
   exit(UNEXPECTED);
 }
-
+int  updateVarValue(char* varname,int value,VarDeclP list){
+	VarDeclP parcours = list;
+	int trouve=FALSE;
+	while(parcours != NULL && !trouve){
+		if(! strcmp(parcours->name, varname)){
+			trouve=TRUE;
+			parcours->val=value;
+		}else
+			parcours = parcours->next;
+	}
+	return value;
+}
 /* Evaluation d'une affectation */
 int evalAff(TreeP tree, VarDeclP decls) {
   char *name = getChild(tree,0)->u.str;
@@ -284,26 +296,26 @@ int evalIf(TreeP tree, VarDeclP decls) {
 
 /*evalusation de la boucle 'pour' (reevalue les bornes à chaque iteration)*/
 int evalFor(TreeP tree, VarDeclP decls){
-	int last = 0;
-	int debut = 0;
-	int pas = 0;
-	int i=0;
 	TreeP instr = getChild(tree,3);
 	TreeP fin = getChild(tree,2);
 	TreeP init = getChild(tree,1);
 	TreeP var = getChild(tree,0);
-	declVar(var->u.str,instr);
-	for(i=eval(init,decls);
-	    i!=eval(fin,decls);
-	    i+=pas){
-		eval(instr,decls);
-		if(eval(fin,decls)>=debut){
-			pas = 1;
-		} else {
-			pas = -1;
-		}
+	VarDeclP indice = makeVar(var->u.str);
+	decls = addToScope(decls,indice,FALSE);
+	int finIterations = eval(fin,decls);
+	int debut = eval(init,decls), pas = 1, i=0, last=0;
+	int condition = TRUE;
+	if(finIterations==debut) condition = FALSE;
+	if(debut>finIterations) pas = -1;
+	for(i=debut;condition;i+=pas){
+		updateVarValue(var->u.str,i,decls);
+		last = eval(instr,decls);
+		if(pas>0)condition = (i < finIterations);
+		else condition = (i > finIterations);
 	}
-	freeVar(decls);
+
+	decls = freeVar(decls);
+
 	return last;
 }
 /* evaluer l'arbre des instructions tant que l'évaluation de l'arbre des
@@ -320,7 +332,9 @@ int evalPut(TreeP content, VarDeclP decls){
 	}
 	return 0;
 }
-/* evaluer l'arbre des instructions tant que l'évaluation de l'arbre des
+
+/* boucle do while evaluer l'arbre des instructions tant
+ * que l'évaluation de l'arbre des
  * conditions ne retourne pas 0 */
 int evalDoWhile(TreeP tree, VarDeclP decls){
 	int last = 0;
@@ -332,10 +346,24 @@ int evalDoWhile(TreeP tree, VarDeclP decls){
 	
 	return last;
 }
+
+/* boucle while : evaluer l'arbre des instructions tant
+ * que l'évaluation de l'arbre des
+ * conditions ne retourne pas 0 */
+int evalWhile(TreeP tree, VarDeclP decls){
+	int last = 0;
+	TreeP instr = getChild(tree,1);
+	TreeP cond = getChild(tree,0);
+	while(eval(cond, decls)){
+		last = eval(instr,decls);
+	}
+	
+	return last;
+}
 /* Evaluation par parcours recursif de l'arbre representant une expression. 
  * Les valeurs des identificateurs situes aux feuilles de l'arbre sont a
  * rechercher dans la liste decls
- * Attention dans chaque a n'evaluer que ce qui doit l'etre et au bon moment
+ * Attention dans chaque cas, n'evaluer que ce qui doit l'etre et au bon moment
  * selon la semantique de l'operateur (cas du IF, and, or, appels de fonction)
  */
 int eval(TreeP tree, VarDeclP decls) {
@@ -390,6 +418,13 @@ int eval(TreeP tree, VarDeclP decls) {
     return (eval(getChild(tree, 0), decls) || eval(getChild(tree, 1), decls));
   case NOT:
     return ! eval(getChild(tree, 0), decls) ;
+    /* operations bit a bit */
+  case BINAND:
+    return (eval(getChild(tree, 0), decls) & eval(getChild(tree, 1), decls));
+  case BINOR:
+    return (eval(getChild(tree, 0), decls) | eval(getChild(tree, 1), decls));
+  case BINXOR:
+    return (eval(getChild(tree, 0), decls) ^ eval(getChild(tree, 1), decls));
   case IF:
     return (evalIf(tree, decls));
   case AFF:
@@ -397,7 +432,8 @@ int eval(TreeP tree, VarDeclP decls) {
   case GET:
     return (getValue());
   case PUT:
-    return (evalPut(getChild(tree,0),decls));
+	evalPut(getChild(tree,0),decls);
+    return (printf("\n"));
   case ARGL:
 	eval(getChild(tree,0),decls);
 	return eval(getChild(tree,1),decls);
@@ -405,6 +441,8 @@ int eval(TreeP tree, VarDeclP decls) {
 	return (evalFor(tree,decls));
   case FAIRE:
 	return (evalDoWhile(tree,decls));
+  case TANTQUE:
+	return evalWhile(tree,decls);
   default: 
     fprintf(stderr, "erreur #1! Eval unknown operator label(eval tp.c ): %d\n", tree->op);
     exit(UNEXPECTED);
@@ -427,7 +465,13 @@ int evalMain(TreeP tree) {
   return errorCode;
 }
 
-
+void checkIdPour(TreeP tree,VarDeclP decls){
+	VarDeclP indice = makeVar(getChild(tree,0)->u.str);
+	decls = addToScope(decls,indice,FALSE);
+	checkId(getChild(tree,3),decls);
+	decls = freeVar(decls);
+	return;
+}
 void checkId(TreeP tree, VarDeclP decls) {
   VarDeclP l; char *name; int i;
   switch (tree->op) {
@@ -437,20 +481,26 @@ void checkId(TreeP tree, VarDeclP decls) {
       if (! strcmp(l->name, name)) { return; }
     }
     fprintf(stderr, "erreur. Variable non declaree: %s\n", name);
+    
     setError(CONTEXT_ERROR);
     return;
   case CST:
   case GET:
+  case BINAND: case BINOR: case BINXOR:
   case AFF: case INSTRL: case ARGL:
+  case TANTQUE: case FAIRE:
   case EQ: case NE: case GT: case GE: case LT: case LE:
   case ADD: case SUB: case MUL: case DIV:case AND:case OR:case NOT:
   case MINUS:case PLUS: case STR:
   case IF:
     for(i=0; i < tree->nbChildren; i++) 
     {
-	checkId(getChild(tree, i), decls); 
+		checkId(getChild(tree, i), decls); 
     }
     return;	
+  case POUR:
+	checkIdPour(tree,decls);
+	return;
   case PUT:
     checkId(getChild(tree, 0), decls);
     return;

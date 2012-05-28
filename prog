@@ -12,9 +12,21 @@ SINON x +4
 FINDESI
 
 ECRIRE(1,2,3,"toto",4,5,6);
-/*POUR x ALLANTDE 1 A 10 FAIRE
-	x := x+3;
-FINPOUR*/
+POUR i ALLANTDE 1 A 10 FAIRE
+	ECRIRE(i);
+FINPOUR
+
+TANTQUE y<x FAIRE
+y:= y+1;
+ECRIRE("nouveau y : ",y);
+FINTANTQUE
+
+FAIRE
+ECRIRE ("nouvelle X :",x);
+x:= x/2;
+TANTQUE x>4 FINTANTQUE
+
+ECRIRE("EPREUVE DU BIT A BIT : ",1 & 1, 5 & 1,2 | 0, 2| 1, 1 ^ 1, 1 ^ 2);
 /*fin du programme */
 FIN
 

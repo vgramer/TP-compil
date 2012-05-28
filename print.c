@@ -48,9 +48,7 @@ void pprintIf(TreeP tree) {
 void pprintPUT(TreeP tree) {
   printf("(put( ");
   pprint(getChild(tree, 0));
-  /*printf(" , ");
-  pprint(getChild(tree, 1));*/
-  printf("))");
+  printf("))\n");
 }
 
 /* Affichage d'un GET */
@@ -58,6 +56,30 @@ void pprintGet() {
   printf("get()");
 }
 
+/* Affichage de la boucle pour */
+void pprintPour(TreeP tree) {
+  printf("(POUR %s ALLANT DE %d A %d FAIRE (\n",getChild(tree, 0)->u.str,
+												getChild(tree, 1)->u.val,
+												getChild(tree, 2)->u.val);
+  pprint(getChild(tree, 3));
+  printf("\n) FIN POUR)");
+}
+/* Affichage de la boucle tantque - faire */
+void pprintTantQue(TreeP tree) {
+  printf("(TANQUE ");
+  pprint(getChild(tree,0));
+  printf(" FAIRE (\n");
+  pprint(getChild(tree,1));
+  printf("\n) FINTANTQUE)");
+}
+/* Affichage de la boucle faire - tantque */
+void pprintFaireTantQue(TreeP tree) {
+  printf("(FAIRE (\n");
+  pprint(getChild(tree,0));
+  printf("\n) TANTQUE ");
+  pprint(getChild(tree,1));
+  printf(" FINTANTQUE)");
+}
 /* Affichage d'un operateur unaire (GET, NOT) */
 void pprintUnaire(TreeP tree, char* op) {
   printf("(%s( ", op);
@@ -86,6 +108,9 @@ void pprint(TreeP tree) {
   case DIV:   pprintTree2(tree, " / "); break;
   case AND:   pprintTree2(tree, " and "); break;
   case OR:    pprintTree2(tree, " or "); break;
+  case BINAND:pprintTree2(tree, " binand "); break;
+  case BINOR: pprintTree2(tree, " binor "); break;
+  case BINXOR:pprintTree2(tree, " xor "); break;
   case AFF:   pprintTree2(tree, " := "); break;
   case INSTRL:pprintTree2(tree, " \n "); break; 
   case ARGL:  pprintTree2(tree, ", "); break;
@@ -95,7 +120,10 @@ void pprint(TreeP tree) {
   case PLUS:  pprintUnaire(tree, "plus"); break;
   case MINUS: pprintUnaire(tree, "minus"); break; 
   case IF:    pprintIf(tree); break;
-   
+  case POUR:  pprintPour(tree); break;
+  case TANTQUE:pprintTantQue(tree);break;
+  case FAIRE: pprintFaireTantQue(tree);break;
+  
   default:
     /* On signale le probleme mais on ne quitte pas le programme pour autant
      * car ce n'est pas dramatique !
