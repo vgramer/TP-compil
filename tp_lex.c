@@ -147,9 +147,20 @@ int main(int argc, char **argv) {
     case IF:
     case THEN:
     case ELSE:
+    case ENDIF:
     case AND:
     case OR:
     case NOT:
+	case BINAND:
+	case BINOR:
+	case BINXOR:
+    case POUR:
+	case ALLANTDE:
+	case JUSQUA:
+	case FAIRE:
+	case FINPOUR:
+	case TANTQUE:
+	case FINTANTQUE:
       if (verbose) printf("Mot-clef:\t\t%s\n",  yytext);
       break;
 
