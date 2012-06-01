@@ -1,0 +1,20 @@
+VAR x:=5;
+VAR y:=10;
+DEBUT
+
+ECRIRE("TEST si 1");
+SI x<y
+ALORS
+ECRIRE ("x<y");
+SINON
+ECRIRE ("x>=y");
+FINDESI
+
+ECRIRE("TEST si 2");
+SI x<y
+ALORS
+ECRIRE ("y>x");
+FINDESI
+
+
+FIN

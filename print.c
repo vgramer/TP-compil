@@ -86,7 +86,6 @@ void pprintUnaire(TreeP tree, char* op) {
   pprint(getChild(tree, 0));
   printf("))");
 }
-
 /* Affichage recursif d'un arbre representant une expression. */
 void pprint(TreeP tree) {
   if (! verbose ) return;
@@ -114,7 +113,7 @@ void pprint(TreeP tree) {
   case AFF:   pprintTree2(tree, " := "); break;
   case INSTRL:pprintTree2(tree, " \n "); break; 
   case ARGL:  pprintTree2(tree, ", "); break;
-  case PUT:   pprintPUT(tree); break;
+  case PUT:   pprintPUT(tree);break;
   case GET:   pprintGet(); break;
   case NOT:   pprintUnaire(tree, "not"); break;
   case PLUS:  pprintUnaire(tree, "plus"); break;
