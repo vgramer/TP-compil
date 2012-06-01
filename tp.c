@@ -57,12 +57,12 @@ int main(int argc, char **argv) {
   for(i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
-      case 'v': case 'V':
+      case 'c': case 'C':
 	verbose = TRUE; continue;
       case 'e': case 'E':
 	noEval = TRUE; continue;
       case '?': case 'h': case 'H':
-	fprintf(stderr, "Appel: tp -e -v programme.txt donnees.dat\n");
+	fprintf(stderr, "Appel: tp -e -c programme.txt donnees.dat\n");
 	exit(USAGE_ERROR);
       default:
 	fprintf(stderr, "Option inconnue: %c\n", argv[i][1]);
