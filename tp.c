@@ -287,11 +287,15 @@ int evalAff(TreeP tree, VarDeclP decls) {
  * Attention a n'evaluer que la partie necessaire !
  */
 int evalIf(TreeP tree, VarDeclP decls) {
-  if (eval(getChild(tree, 0), decls)) {
-    return eval(getChild(tree, 1), decls);
-  } else {
-    return eval(getChild(tree, 2), decls);
-  }
+	int condition = eval(getChild(tree, 0), decls);
+	if (condition != 0) {
+		eval(getChild(tree, 1), decls);
+	} else {
+		if(tree->nbChildren==3){
+			eval(getChild(tree, 2), decls);
+		}
+	}
+	return condition;
 }
 
 /*evalusation de la boucle 'pour' (reevalue les bornes à chaque iteration)*/

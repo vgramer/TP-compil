@@ -30,26 +30,27 @@
 /*ici on "declare les non terminaux"*/
 %type <T> loop;
 %type <T> put;
-%type <T> instr;
 %type <T> expr;
 %type <T> get;
 %type <T> ifThen;
+%type <T> aff;
 %type <T> cond;
 %type <T> arg;
 %type <T> argL;
+%type <T> instr;
 %type <T> instrL;
 
 
 /* indications de precedence (en ordre croissant) et d'associativite. Les
  * operateurs sur une meme ligne (separes par un espace) ont la meme priorite.
  */
-%left IF THEN ELSE ENDIF
 %left GET
+%left AFF
 %left ADD SUB
 %left MUL DIV
 %left AND OR
 %left NOT
-
+%left BINOR BINAND BINXOR
 
 
 %{
@@ -101,8 +102,7 @@ var_decl : VARDECL ID AFF expr {declVar($2, $4);}
 $$ est le noeud courrant au quel on va ajouter l' AST produite par la regle
 $2..n sont les composantes(fils) de l'arbre que nous somme en train de construire, ce sont deja des AST
 */ 
-expr : get
-| ADD expr {$$ = makeTree(PLUS, 1, $2);}
+expr : ADD expr {$$ = makeTree(PLUS, 1, $2);}
 | SUB expr {$$ = makeTree(MINUS, 1, $2);}
 | expr ADD expr {$$ = makeTree(ADD, 2, $1,$3);}
 | expr SUB expr {$$ = makeTree(SUB, 2, $1,$3);}
@@ -113,26 +113,33 @@ expr : get
 | expr BINAND expr {$$ = makeTree(BINAND, 2, $1, $3);}
 | CST{ $$ = makeLeafInt(CST , $1);}
 | ID { $$ = makeLeafStr(ID,$1);}
+| get
 ;
 
 /*une condition*/
+
 cond : expr RELOP expr {$$ =  makeTree($2, 2, $1,$3);}
 
 /*cond AND cond  et pas expr AND expr afin de n'avoir que des expr booleenne
 les operateurs boolean ne sont pas definie sur les entiers ex: "not 3" n'a de sens
 */
+
 | cond AND cond {$$ =  makeTree(AND, 2, $1,$3);}
 | cond OR cond {$$ =  makeTree(OR, 2, $1,$3);}
 | NOT cond {$$ = makeTree(NOT ,1, $2);}
 ;
 
-ifThen : IF cond THEN expr ELSE expr ENDIF
+
+
+ifThen : IF cond THEN instrL ELSE instrL ENDIF
 {$$ =  makeTree(IF, 3, $2,$4, $6);}
-| IF cond THEN expr ENDIF
+| IF cond THEN instrL ENDIF
 {$$ =  makeTree(IF, 2, $2,$4);}
 ;
 
+
 /* regles pour definir les valeurs des parametres */
+
 argL : arg
 | argL ',' arg {$$ = makeTree(ARGL,2,$1,$3); }
 ;
@@ -147,25 +154,32 @@ put : PUT '(' argL ')'
 ;
 
 /* regle pour l'equivalent du 'scanf' */
+
 get: GET '(' ')'
 {$$= makeTree(GET , 0);}
 ;
 
+
 /* les boucles sont dcrites pas la regle suivante */
+
 loop: POUR ID ALLANTDE expr JUSQUA expr FAIRE instrL FINPOUR { $$ = makeTree(POUR,4,makeLeafStr(ID,$2),$4,$6,$8);}
 | FAIRE instrL TANTQUE cond FINTANTQUE { $$ = makeTree(FAIRE,2,$2,$4);}
 | TANTQUE cond FAIRE instrL FINTANTQUE { $$ = makeTree(TANTQUE,2,$2,$4);}
 ;
 
 /* listes d'instructions */
+
 instrL: instr
 | instrL instr { $$ = makeTree(INSTRL,2,$1,$2);}
 ;
 
+/*affectation*/
+aff: ID AFF expr {$$ = makeTree(AFF,2,makeLeafStr(ID,$1),$3);}
+;
 
 /* une declaration de variable ou de fonction, terminee par un ';'. */
-instr : ID AFF expr ';' {$$ = makeTree(AFF,2,makeLeafStr(ID,$1),$3);}
+instr : aff ';'
 | loop
-| put ';'
 | ifThen
+| put ';'
 ;

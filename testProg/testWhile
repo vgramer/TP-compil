@@ -1,0 +1,48 @@
+VAR x:=5;
+VAR y:=10;
+DEBUT
+
+ECRIRE("TEST tantque 1");
+TANTQUE y<12 FAIRE
+y:= y+1;
+x:= x+2;
+ECRIRE("nouveau y : ",y," et nouveau x : ",x);
+FINTANTQUE
+
+ECRIRE("TEST tantque 2");
+x:=5;
+y:=10;
+TANTQUE y<10 FAIRE
+y:= y+1;
+x:= x+2;
+ECRIRE("nouveau y : ",y," et nouveau x : ",x);
+FINTANTQUE
+
+ECRIRE("TEST tantque 3");
+x:=5;
+y:=10;
+TANTQUE y<=10 FAIRE
+y:= y+1;
+x:= x+2;
+ECRIRE("nouveau y : ",y," et nouveau x : ",x);
+FINTANTQUE
+
+ECRIRE("TEST tantque 4");
+x:=5;
+y:=10;
+TANTQUE y>x FAIRE
+y:= y+1;
+x:= x+2;
+ECRIRE("nouveau y : ",y," et nouveau x : ",x);
+FINTANTQUE
+
+ECRIRE("TEST tantque 5");
+x:=5;
+y:=10;
+TANTQUE y/2+1>x FAIRE
+y:= y+1;
+x:= x+2;
+ECRIRE("nouveau y : ",y," et nouveau x : ",x);
+FINTANTQUE
+
+FIN

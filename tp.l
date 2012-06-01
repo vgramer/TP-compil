@@ -75,8 +75,7 @@ void lexError(char c) {
 {Digit}+        { yylval.I = strtol(yytext, NULL, 0); return(CST); }
 {Letter}{LD}*   { return keywordOrId(); }
 
-\"({StrChar}|{StrEsc})*\" { yytext[strlen(yytext)-1]='\0';
-							yylval.S = strdup(yytext+1);
+\"({StrChar}|{StrEsc})*\" { yylval.S = strdup(yytext);
 							return(STR); }
 
 "/*"({NotStar}|{Star}+{NotStarSlash})*{Star}+"/" { /* Commentaire ! */ }
