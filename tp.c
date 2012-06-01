@@ -26,6 +26,11 @@ int errorCode = NO_ERROR;
 /* Descripteur de fichier pour la lecture des donnees par get */
 FILE *fd = NIL(FILE);
 
+/* chaine de caracteres recevant les initialisations de variables pour
+ * faciliter la generation de code, et générer un code un peu plus propre */
+char* varBuffer=NULL;
+/* nom du fichier source ouvert */
+char* opened_filename=NULL;
 
 /* Pile des variables localement visibles.
  * Un parametre de fonction ou une variable locale (d'un LET) peut
@@ -72,7 +77,7 @@ int main(int argc, char **argv) {
   }
 
   if ((fi = open(argv[i++], O_RDONLY)) == -1) {
-    fprintf(stderr, "erreur: Cannot open %s\n", argv[i-1]);
+    fprintf(stderr, "erreur: Cannot open source file %s\n", argv[i-1]);
     exit(USAGE_ERROR);
   }
 
@@ -81,7 +86,7 @@ int main(int argc, char **argv) {
 
   if (i < argc) { /* fichier dans lequel lire les valeurs pour get() */
     if ((fd = fopen(argv[i], "r")) == NULL) {
-      fprintf(stderr, "erreur: Cannot open %s\n", argv[i]);
+      fprintf(stderr, "erreur: Cannot open data file %s\n", argv[i]);
       exit(USAGE_ERROR);
     }
   }
@@ -100,11 +105,21 @@ int main(int argc, char **argv) {
    * a la premiere mais de continuer l'analyse pour en trouver d'autres, quand
    * c'est possible.
    */
+   opened_filename = (char*)calloc(strlen(argv[i-1]),sizeof(char));
+   varBuffer = (char*)calloc(1,sizeof(char));
+   strcat(opened_filename,argv[i-1]);
   res = yyparse();
   if (fd != NIL(FILE)) fclose(fd);
   return res ? SYNTAX_ERROR : errorCode;
 }
 
+char** get_var_buffer() {
+	return &varBuffer;
+}
+
+const char* get_filename() {
+	return opened_filename;
+}
 
 void setError(int code) {
   errorCode = code;
@@ -187,9 +202,9 @@ VarDeclP makeVar(char *name) {
 void declVar(char *name, TreeP tree) {
   VarDeclP pvar = makeVar(name);
   checkId(tree, currentScope);
-  pprintVar(pvar, tree);
+  pprintVar(pvar, tree, &varBuffer);
   if (! noEval) { pvar->val = eval(tree, currentScope); }
-  pprintValueVar(pvar);
+  pprintValueVar(pvar, &varBuffer);
   currentScope = addToScope(currentScope, pvar, TRUE);
 }
 

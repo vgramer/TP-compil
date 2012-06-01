@@ -1,5 +1,10 @@
+#ifndef __TP_H__
+#define __TP_H__
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
 
 /* deux macros pratiques, utilisees dans les allocations */
 #define NEW(howmany, type) (type *) calloc((unsigned) howmany, sizeof(type))
@@ -90,9 +95,14 @@ TreeP getChild(TreeP tree, int rank);
 int evalMain(TreeP tree);
 
 /* ecriture formatee */
-void pprintVar(VarDeclP decl, TreeP tree);
-void pprintValueVar(VarDeclP decl);
-void pprint(TreeP tree);
+void pprintVar(VarDeclP decl, TreeP tree, char** var_decls_buffer);
+void pprintValueVar(VarDeclP decl, char** generated_code);
+void pprint(TreeP tree,char** generated_code);
 void pprintMain(TreeP);
 
+char** get_var_buffer();
+const char* get_filename();
+
 #define YYSTYPE YYSTYPE
+
+#endif
