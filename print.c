@@ -1,5 +1,9 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+
 #include "tp.h"
 #include "tp_y.h"
 
@@ -26,29 +30,70 @@ void pprintValueVar(VarDeclP decl) {
 
 /* Affichage d'une expression binaire */
 void pprintTree2(TreeP tree, char *op) {
-  printf("(");
   pprint(getChild(tree, 0));
   printf("%s", op);
   pprint(getChild(tree, 1));
-  printf(")");
-}
+ }
 
 /* Affichage d'un if then else */
 void pprintIf(TreeP tree) {
-  printf("(if ");
+  printf("if( ");
   pprint(getChild(tree, 0));
-  printf(" then ");
+  printf(" )\n{\n");
   pprint(getChild(tree, 1));
-  printf(" else ");
+  printf("\n}else{\n");
   pprint(getChild(tree, 2));
-  printf(")");
+  printf("\n}");
+
+}
+
+void reallocWithErrorManagement(char*, )
+{
+	
+}
+void makeFormatList(TreeP content, char** formatList){
+	if(content->op == ARGL){
+		makeFormatList(getChild(content,0), formatList);
+		makeFormatList(getChild(content,1), formatList);
+	} 
+	else {
+		if(content->op == STR)
+		{
+			*formatList = (char*)realloc(*formatList , strlen(*formatList) + sizeof(char) *3);
+			/*TODO: check realloc failed*/
+			*formatList =strcat(*formatList, "\%s");
+			
+		}
+		else if(content->op == ID)
+		{
+			*formatList = (char*)realloc(*formatList , strlen(*formatList) + sizeof(char) *3);
+			/*TODO: check realloc failed*/
+			*formatList =strcat(*formatList, "\%d");
+		}
+		else
+		{		
+			*formatList = (char*)realloc(*formatList , strlen(*formatList) + sizeof(char) *3);
+			/*TODO: check realloc failed*/
+			*formatList =strcat(*formatList, "\%d");
+			
+		}
+	}
 }
 
 /* Affichage d'un PUT */
 void pprintPUT(TreeP tree) {
-  printf("(put( ");
+  char* formatList=0;
+  char* argList=0;
+  formatList=calloc(1,sizeof(char));
+  argList=calloc(1,sizeof(char));
+  
+  /*TODO generate a function which print and return 0*/
+  makeFormatList(getChild(tree, 0),&formatList);
+  printf("testprintf(%s",formatList);
   pprint(getChild(tree, 0));
-  printf("))\n");
+  printf(")\n");
+  free(formatList);
+  free(argList);
 }
 
 /* Affichage d'un GET */
@@ -66,21 +111,21 @@ void pprintPour(TreeP tree) {
 }
 /* Affichage de la boucle tantque - faire */
 void pprintTantQue(TreeP tree) {
-  printf("(TANQUE ");
+  printf("while(");
   pprint(getChild(tree,0));
-  printf(" FAIRE (\n");
+  printf(")\n{\n");
   pprint(getChild(tree,1));
-  printf("\n) FINTANTQUE)");
+  printf("\n}");
 }
 /* Affichage de la boucle faire - tantque */
 void pprintFaireTantQue(TreeP tree) {
-  printf("(FAIRE (\n");
+  printf("do\n{\n");
   pprint(getChild(tree,0));
-  printf("\n) TANTQUE ");
+  printf("\n}while (");
   pprint(getChild(tree,1));
-  printf(" FINTANTQUE)");
+  printf(")");
 }
-/* Affichage d'un operateur unaire (GET, NOT) */
+/* Affichage d'un operateur unaire (not, +) */
 void pprintUnaire(TreeP tree, char* op) {
   printf("(%s( ", op);
   pprint(getChild(tree, 0));
@@ -93,7 +138,7 @@ void pprint(TreeP tree) {
     printf("Unknown"); return;
   }
   switch (tree->op) {
-  case ID:case STR:    printf("%s", tree->u.str); break;
+  case ID:case STR:  case VARDECL:  printf("%s", tree->u.str); break;
   case CST:   printf("%d", tree->u.val); break;
   case EQ:    pprintTree2(tree, " = "); break;
   case NE:    pprintTree2(tree, " <> "); break;
@@ -105,19 +150,19 @@ void pprint(TreeP tree) {
   case SUB:   pprintTree2(tree, " - "); break;
   case MUL:   pprintTree2(tree, " * "); break;
   case DIV:   pprintTree2(tree, " / "); break;
-  case AND:   pprintTree2(tree, " and "); break;
+  case AND:   pprintTree2(tree, " && "); break;
   case OR:    pprintTree2(tree, " or "); break;
-  case BINAND:pprintTree2(tree, " binand "); break;
-  case BINOR: pprintTree2(tree, " binor "); break;
+  case BINAND:pprintTree2(tree, " & "); break;
+  case BINOR: pprintTree2(tree, " | "); break;
   case BINXOR:pprintTree2(tree, " xor "); break;
-  case AFF:   pprintTree2(tree, " := "); break;
-  case INSTRL:pprintTree2(tree, " \n "); break; 
+  case AFF:   pprintTree2(tree, " = "); break;
+  case INSTRL:pprintTree2(tree, ";\n "); break; 
   case ARGL:  pprintTree2(tree, ", "); break;
   case PUT:   pprintPUT(tree);break;
   case GET:   pprintGet(); break;
-  case NOT:   pprintUnaire(tree, "not"); break;
-  case PLUS:  pprintUnaire(tree, "plus"); break;
-  case MINUS: pprintUnaire(tree, "minus"); break; 
+  case NOT:   pprintUnaire(tree, " !"); break;
+  case PLUS:  pprintUnaire(tree, " +"); break;
+  case MINUS: pprintUnaire(tree, " -"); break; 
   case IF:    pprintIf(tree); break;
   case POUR:  pprintPour(tree); break;
   case TANTQUE:pprintTantQue(tree);break;
@@ -135,7 +180,8 @@ void pprint(TreeP tree) {
 
 void pprintMain(TreeP tree) {
   if (! verbose) return;
-  printf("Expression principale : ");
+  printf("#include <stdio.h>\n\nint main()\n{\n");
   pprint(tree);
+  printf("}");
   fflush(NULL);
 }
