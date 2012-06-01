@@ -47,10 +47,6 @@ void pprintIf(TreeP tree) {
 
 }
 
-void reallocWithErrorManagement(char*, )
-{
-	
-}
 void makeFormatList(TreeP content, char** formatList){
 	if(content->op == ARGL){
 		makeFormatList(getChild(content,0), formatList);
@@ -89,7 +85,7 @@ void pprintPUT(TreeP tree) {
   
   /*TODO generate a function which print and return 0*/
   makeFormatList(getChild(tree, 0),&formatList);
-  printf("testprintf(%s",formatList);
+  printf("testprintf(%s,",formatList);
   pprint(getChild(tree, 0));
   printf(")\n");
   free(formatList);
@@ -103,12 +99,26 @@ void pprintGet() {
 
 /* Affichage de la boucle pour */
 void pprintPour(TreeP tree) {
-  printf("(POUR %s ALLANT DE %d A %d FAIRE (\n",getChild(tree, 0)->u.str,
-												getChild(tree, 1)->u.val,
-												getChild(tree, 2)->u.val);
-  pprint(getChild(tree, 3));
-  printf("\n) FIN POUR)");
+	
+	char* var = getChild(tree, 0)->u.str;
+	int begin = getChild(tree, 1)->u.val;
+	int end = getChild(tree, 2)->u.val;
+	
+	char symbol [2] = "<";
+	char increment [3]= "++";
+	
+	if(begin > end)
+	{
+		symbol[0] = '>';
+		increment[0] = '-';
+		increment[1] = '-';
+	}
+	
+	printf("for( int %s = %d; %s %s %d ; %s%s)\n{\n",var, begin, var, symbol, end , var , increment);
+	pprint(getChild(tree, 3));
+	printf("\n}\n");
 }
+
 /* Affichage de la boucle tantque - faire */
 void pprintTantQue(TreeP tree) {
   printf("while(");
