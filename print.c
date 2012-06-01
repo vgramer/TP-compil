@@ -47,6 +47,25 @@ void pprintIf(TreeP tree) {
 
 }
 
+/*
+ * concate the string source and stringToConcate in string source. 
+ * Memory is automaticly reallocated. 
+ * Exit the prog is memory cant be reallocated
+ */
+void concate(char** source, const char* stringToConcate)
+{
+	/*add  +1 to \0 */
+	*source = (char*)realloc(*source, sizeof(char) * (strlen(*source)  + strlen(stringToConcate) +1) );
+	
+	if(*source == 0)
+	{
+		printf("\n\n------------------------\n ERROR CAN NOT REALOCC MEMORY !!!! \n------------------------");
+		exit(1);
+	}
+	
+	/*concate the strings*/
+	*source =strcat(*source, stringToConcate);
+}
 void makeFormatList(TreeP content, char** formatList){
 	if(content->op == ARGL){
 		makeFormatList(getChild(content,0), formatList);
@@ -55,23 +74,18 @@ void makeFormatList(TreeP content, char** formatList){
 	else {
 		if(content->op == STR)
 		{
-			*formatList = (char*)realloc(*formatList , strlen(*formatList) + sizeof(char) *3);
-			/*TODO: check realloc failed*/
-			*formatList =strcat(*formatList, "\%s");
-			
+			/*first realoc mem to have enought space to add str format and add it to list*/
+			concate(formatList, "\%s");			
 		}
-		else if(content->op == ID)
+		else if(content->op == ID) /*variable case=> show the value of the variable*/
 		{
-			*formatList = (char*)realloc(*formatList , strlen(*formatList) + sizeof(char) *3);
-			/*TODO: check realloc failed*/
-			*formatList =strcat(*formatList, "\%d");
+			/*first realoc mem to have enought space to add str format and add it to list*/
+			concate(formatList, "\%d");
 		}
-		else
-		{		
-			*formatList = (char*)realloc(*formatList , strlen(*formatList) + sizeof(char) *3);
-			/*TODO: check realloc failed*/
-			*formatList =strcat(*formatList, "\%d");
-			
+		else /* numerical constant case */
+		{	
+			/*first realoc mem to have enought space to add str format and add it to list*/	
+			concate(formatList, "\%d");
 		}
 	}
 }
