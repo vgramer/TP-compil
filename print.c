@@ -11,7 +11,7 @@ extern void setError();
 extern bool verbose;
 extern bool noEval;
 
-int indentation = 0;
+int indentation = 1;
 
 void printIndentation(){
 	int i=0;
@@ -24,6 +24,7 @@ void pprintVar(VarDeclP decl, TreeP tree) {
   if (! verbose) return;
   printf("int %s = ", decl->name);
   pprint(tree);
+  printf(";");
   /* utile au cas ou l'evaluation se passerait mal ! */
   fflush(NULL);
 }
@@ -32,7 +33,7 @@ void pprintVar(VarDeclP decl, TreeP tree) {
 void pprintValueVar(VarDeclP decl) {
   if (! verbose) return;
   if (! noEval) {
-    printf(";\n// [Valeur: %d]\n", decl->val);
+    printf("\n// [Valeur: %d]\n", decl->val);
   } else printf("\n");
 }
 
@@ -46,19 +47,33 @@ void pprintTree2(TreeP tree, char *op) {
 
 /* Affichage d'un if then else */
 void pprintIf(TreeP tree) {
-  printf("if( ");
-  pprint(getChild(tree, 0));
-  printf(" )\n{\n");
-  indentation++;
-  pprint(getChild(tree, 1));
-  indentation--;
-  if(tree->nbChildren==3){
-    printf("\n} else {\n");
-    indentation++;
-    pprint(getChild(tree, 2));
-    indentation--;
-  }
-  printf("\n}\n");
+	
+	/* instruction if */
+	printIndentation();
+	printf("if( ");
+	pprint(getChild(tree, 0));
+	printf(" ) {\n");
+	
+	/*debut du bloc d'instructions*/
+	indentation++;
+	pprint(getChild(tree, 1));
+	indentation--;
+	
+	/* y a-t-il un bloc 'else' ? */
+	if(tree->nbChildren==3){
+		printf("\n");
+		printIndentation();
+		printf("} else {\n");
+		/* debut du bloc else */
+		indentation++;
+		pprint(getChild(tree, 2));
+		indentation--;
+	}
+	
+	/* fin du dernier bloc defini */
+	printf("\n");
+	printIndentation();
+	printf("}");
 
 }
 
@@ -81,8 +96,11 @@ void concate(char** source, const char* stringToConcate)
 	/*concate the strings*/
 	*source =strcat(*source, stringToConcate);
 }
+
+/* visits nodes of the given tree to define the format string */
 void makeFormatList(TreeP content, char** formatList){
 	if(content->op == ARGL){
+		/* if arguments list tree found, then recursively call make format string on both children*/
 		makeFormatList(getChild(content,0), formatList);
 		makeFormatList(getChild(content,1), formatList);
 	} 
@@ -107,19 +125,24 @@ void makeFormatList(TreeP content, char** formatList){
 
 /* Affichage d'un PUT */
 void pprintPUT(TreeP tree) {
-  char* formatList=0;
-  char* argList=0;
+  
+  /* allocate a buffer for making the format string */
+  char* formatList=NULL;
   formatList=calloc(1,sizeof(char));
-  argList=calloc(1,sizeof(char));
   
   /*TODO generate a function which print and return 0*/
   makeFormatList(getChild(tree, 0),&formatList);
+  
+  /* ecriture de la chaine de formattage */
   printIndentation();
   printf("printf(\"%s\",",formatList);
+  
+  /* ajout des parametres */
   pprint(getChild(tree, 0));
   printf(");");
+  
+  /* free buffer */
   free(formatList);
-  free(argList);
 }
 
 /* Affichage d'un GET */
@@ -144,26 +167,59 @@ void pprintPour(TreeP tree) {
 		increment[1] = '-';
 	}
 	
-	printf("for( int %s = %d; %s %s %d ; %s%s)\n{\n",var, begin, var, symbol, end , var , increment);
+	/* instruction for en fonction des parametres */
+	printIndentation();
+	printf("for(int %s = %d; %s %s %d ; %s%s)\n",var, begin, var, symbol, end , var , increment);
+	printIndentation();
+	printf("{\n");
+	
+	/* blocs d'instructions*/
+	indentation++;
 	pprint(getChild(tree, 3));
-	printf("\n}\n");
+	indentation--;
+	
+	/*cloture du bloc d'instructions*/
+	printf("\n");
+	printIndentation();
+	printf("}");
 }
 
 /* Affichage de la boucle tantque - faire */
 void pprintTantQue(TreeP tree) {
+
+  /* instruction while */
+  printIndentation();
   printf("while(");
   pprint(getChild(tree,0));
-  printf(")\n{\n");
+  printf(")");
+  printIndentation();
+  printf("{\n");
+  
+  /* bloc d'instructions */
+  indentation++;
   pprint(getChild(tree,1));
-  printf("\n}");
+  indentation--;
+  
+  /* fermeture du bloc d'instructions */
+  printf("\n");
+  printIndentation();
+  printf("}");
+  
 }
 /* Affichage de la boucle faire - tantque */
 void pprintFaireTantQue(TreeP tree) {
-  printf("do\n{\n");
+  printIndentation();
+  printf("do\n");
+  printIndentation();
+  printf("{\n");
+  indentation++;
   pprint(getChild(tree,0));
-  printf("\n}while (");
+  indentation--;
+  printf("\n");
+  printIndentation();
+  printf("}while (");
   pprint(getChild(tree,1));
-  printf(")");
+  printf(");");
 }
 /* Affichage d'un operateur unaire (not, +) */
 void pprintUnaire(TreeP tree, char* op) {
@@ -195,8 +251,8 @@ void pprint(TreeP tree) {
   case BINAND:pprintTree2(tree, " & "); break;
   case BINOR: pprintTree2(tree, " | "); break;
   case BINXOR:pprintTree2(tree, " ^ "); break;
-  case AFF:   pprintTree2(tree, " = "); printf(";"); break;
-  case INSTRL:pprintTree2(tree, "\n "); break; 
+  case AFF:   printIndentation(); pprintTree2(tree, " = "); printf(";"); break;
+  case INSTRL:pprintTree2(tree, "\n"); break; 
   case ARGL:  pprintTree2(tree, ", "); break;
   case PUT:   pprintPUT(tree);break;
   case GET:   pprintGet(); break;
@@ -220,8 +276,10 @@ void pprint(TreeP tree) {
 
 void pprintMain(TreeP tree) {
   if (! verbose) return;
-  printf("#include <stdio.h>\n\nint main()\n{\n");
+  printf("#include <stdio.h>\n#include <stdlib.h>\n\nint main()\n{\n");
   pprint(tree);
-  printf("}\n\n");
+  printf("\n");
+  printIndentation();
+  printf("return EXIT_SUCCESS;\n}\n\n");
   fflush(NULL);
 }
