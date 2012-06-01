@@ -11,9 +11,18 @@ extern void setError();
 extern bool verbose;
 extern bool noEval;
 
+int indentation = 0;
+
+void printIndentation(){
+	int i=0;
+	for(i=0;i<indentation;i++){
+			printf("    ");
+	}
+}
+
 void pprintVar(VarDeclP decl, TreeP tree) {
   if (! verbose) return;
-  printf("%s := ", decl->name);
+  printf("int %s = ", decl->name);
   pprint(tree);
   /* utile au cas ou l'evaluation se passerait mal ! */
   fflush(NULL);
@@ -23,7 +32,7 @@ void pprintVar(VarDeclP decl, TreeP tree) {
 void pprintValueVar(VarDeclP decl) {
   if (! verbose) return;
   if (! noEval) {
-    printf(" [Valeur: %d]\n", decl->val);
+    printf(";\n// [Valeur: %d]\n", decl->val);
   } else printf("\n");
 }
 
@@ -40,10 +49,16 @@ void pprintIf(TreeP tree) {
   printf("if( ");
   pprint(getChild(tree, 0));
   printf(" )\n{\n");
+  indentation++;
   pprint(getChild(tree, 1));
-  printf("\n}else{\n");
-  pprint(getChild(tree, 2));
-  printf("\n}");
+  indentation--;
+  if(tree->nbChildren==3){
+    printf("\n} else {\n");
+    indentation++;
+    pprint(getChild(tree, 2));
+    indentation--;
+  }
+  printf("\n}\n");
 
 }
 
@@ -85,9 +100,10 @@ void pprintPUT(TreeP tree) {
   
   /*TODO generate a function which print and return 0*/
   makeFormatList(getChild(tree, 0),&formatList);
-  printf("testprintf(%s,",formatList);
+  printIndentation();
+  printf("printf(\"%s\",",formatList);
   pprint(getChild(tree, 0));
-  printf(")\n");
+  printf(");");
   free(formatList);
   free(argList);
 }
@@ -161,12 +177,12 @@ void pprint(TreeP tree) {
   case MUL:   pprintTree2(tree, " * "); break;
   case DIV:   pprintTree2(tree, " / "); break;
   case AND:   pprintTree2(tree, " && "); break;
-  case OR:    pprintTree2(tree, " or "); break;
+  case OR:    pprintTree2(tree, " || "); break;
   case BINAND:pprintTree2(tree, " & "); break;
   case BINOR: pprintTree2(tree, " | "); break;
-  case BINXOR:pprintTree2(tree, " xor "); break;
-  case AFF:   pprintTree2(tree, " = "); break;
-  case INSTRL:pprintTree2(tree, ";\n "); break; 
+  case BINXOR:pprintTree2(tree, " ^ "); break;
+  case AFF:   pprintTree2(tree, " = "); printf(";"); break;
+  case INSTRL:pprintTree2(tree, "\n "); break; 
   case ARGL:  pprintTree2(tree, ", "); break;
   case PUT:   pprintPUT(tree);break;
   case GET:   pprintGet(); break;
@@ -192,6 +208,6 @@ void pprintMain(TreeP tree) {
   if (! verbose) return;
   printf("#include <stdio.h>\n\nint main()\n{\n");
   pprint(tree);
-  printf("}");
+  printf("}\n\n");
   fflush(NULL);
 }
