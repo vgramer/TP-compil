@@ -319,13 +319,17 @@ void pprintMain(TreeP tree) {
   if (! Cgen) return;
   output_file = fopen(output_filename,"w+");
   if(!output_file) {
-	  printf("ne peut compiler dans le fichier '%s'. verifiez les autorisations.\n", output_filename);
-	  return;
-	}
+	printf("ne peut compiler dans le fichier '%s'. verifiez les autorisations.\n", output_filename);
+	return;
+  }
+  else{
+	printf("Generation du fichier '%s' ...\n",output_filename);
+  }
   fprintf(output_file,"#include <stdio.h>\n#include <stdlib.h>\n\nint main()\n{\n%s\n",*VarBuffer);
   pprint(tree,&generated_code);
   concate(&generated_code, "\n");
   printIndentation(&generated_code);
   fprintf(output_file,"%sreturn EXIT_SUCCESS;\n}\n\n",generated_code);
-  fflush(NULL);
+  fclose(output_file);
+  printf("Generation terminee avec succes.\n");
 }

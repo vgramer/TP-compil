@@ -32,7 +32,7 @@ tp_lex : tp_l.c tp_lex.c tp_y.h
 .Phony: clean tests
 
 clean:
-	rm -f *~ tp*.exe* tp tp_lex *.o tp_l.* tp_y.*
+	rm -f *~ tp*.exe* tp tp_lex *.o tp_l.* tp_y.* prog.c
 	rm -f test/*~ test/*.out test/*.res test/*/*~ test/*/*.out test/*/*.res
 
 tests:
