@@ -8,12 +8,12 @@ extern int yylineno;
 void checkId(TreeP tree, VarDeclP decls);
 int eval(TreeP tree, VarDeclP decls);
 
-/* Niveau de 'verbosite'.
- * Par defaut, n'imprime que le resultat et les messages d'erreur
+/* Generation de code source C
+ * Par defaut ne génère pas de code C
  */
 bool Cgen = FALSE;
 
-/* Evaluation ou pas. Par defaut, on evalue les expressions */
+/* Interpretation ou pas. Par defaut, on n'evalue pas les expressions */
 bool Eval = FALSE;
 
 /* code d'erreur a retourner */
@@ -465,7 +465,6 @@ int eval(TreeP tree, VarDeclP decls) {
 }
 
 int evalMain(TreeP tree) {
- int res;
   /* faire l'impression de l'expression principale avant d'evaluer le resultat,
    *  au cas ou il y aurait une erreur pendant l'evaluation
    */
@@ -480,7 +479,7 @@ int evalMain(TreeP tree) {
   if (! Eval) {
     fprintf(stderr, "\nPhase d'interpretation ignoree.\n");
   } else {
-      res = eval(tree, currentScope);
+    eval(tree, currentScope);
   }
   return errorCode;
 }
