@@ -1,4 +1,4 @@
-OBJ=tp.o tp_l.o tp_y.o print.o
+OBJ=tp.o tp_l.o tp_y.o genCode.o prefixPrint.o
 CC=gcc
 CFLAGS=-Wall -ansi -I./ -g 
 LDFLAGS= -g -lfl
@@ -8,11 +8,14 @@ tp : $(OBJ)
 tp.c :
 	echo ''
 
-tp.o: tp.c tp_y.h tp.h
+tp.o: tp.c tp_y.h tp.h genCode.h prefixPrint.h
 	$(CC) $(CFLAGS) -c tp.c
 
-print.o: print.c tp_y.h tp.h
-	$(CC) $(CFLAGS) -c print.c
+genCode.o: genCode.c tp_y.h tp.h genCode.h
+	$(CC) $(CFLAGS) -c genCode.c
+
+prefixPrint.o: prefixPrint.c tp_y.h tp.h prefixPrint.h
+	$(CC) $(CFLAGS) -c prefixPrint.c
 
 tp_l.o: tp_l.c tp_y.h
 	$(CC) $(CFLAGS) -c tp_l.c
@@ -32,7 +35,7 @@ tp_lex : tp_l.c tp_lex.c tp_y.h
 .Phony: clean tests
 
 clean:
-	rm -f *~ tp*.exe* tp tp_lex *.o tp_l.* tp_y.*
+	rm -f *~ tp*.exe* tp tp_lex *.o tp_l.* tp_y.* prog.c
 	rm -f test/*~ test/*.out test/*.res test/*/*~ test/*/*.out test/*/*.res
 
 tests:

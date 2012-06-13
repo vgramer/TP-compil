@@ -1,10 +1,7 @@
-#include <unistd.h>
-#include <stdarg.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
 #include "tp.h"
 #include "tp_y.h"
+#include "genCode.h"
+#include "prefixPrint.h"
 
 extern int yyparse();
 extern int yylineno;
@@ -12,13 +9,13 @@ extern int yylineno;
 void checkId(TreeP tree, VarDeclP decls);
 int eval(TreeP tree, VarDeclP decls);
 
-/* Niveau de 'verbosite'.
- * Par defaut, n'imprime que le resultat et les messages d'erreur
+/* Generation de code source C
+ * Par defaut ne génère pas de code C
  */
-bool verbose = FALSE;
+bool Cgen = FALSE;
 
-/* Evaluation ou pas. Par defaut, on evalue les expressions */
-bool noEval = FALSE;
+/* Interpretation ou pas. Par defaut, on n'evalue pas les expressions */
+bool Eval = FALSE;
 
 /* code d'erreur a retourner */
 int errorCode = NO_ERROR;
@@ -26,6 +23,11 @@ int errorCode = NO_ERROR;
 /* Descripteur de fichier pour la lecture des donnees par get */
 FILE *fd = NIL(FILE);
 
+/* chaine de caracteres recevant les initialisations de variables pour
+ * faciliter la generation de code, et générer un code un peu plus propre */
+char* varBuffer=NULL;
+/* nom du fichier source ouvert */
+char* opened_filename=NULL;
 
 /* Pile des variables localement visibles.
  * Un parametre de fonction ou une variable locale (d'un LET) peut
@@ -52,12 +54,12 @@ int main(int argc, char **argv) {
   for(i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
-      case 'v': case 'V':
-	verbose = TRUE; continue;
-      case 'e': case 'E':
-	noEval = TRUE; continue;
+      case 'c': case 'C':
+	Cgen = TRUE; continue;
+      case 'i': case 'I':
+	Eval = TRUE; continue;
       case '?': case 'h': case 'H':
-	fprintf(stderr, "Appel: tp -e -v programme.txt donnees.dat\n");
+	fprintf(stderr, "Appel: tp -i -c programme.txt donnees.dat\n");
 	exit(USAGE_ERROR);
       default:
 	fprintf(stderr, "Option inconnue: %c\n", argv[i][1]);
@@ -72,7 +74,7 @@ int main(int argc, char **argv) {
   }
 
   if ((fi = open(argv[i++], O_RDONLY)) == -1) {
-    fprintf(stderr, "erreur: Cannot open %s\n", argv[i-1]);
+    fprintf(stderr, "erreur: Cannot open source file %s\n", argv[i-1]);
     exit(USAGE_ERROR);
   }
 
@@ -81,7 +83,7 @@ int main(int argc, char **argv) {
 
   if (i < argc) { /* fichier dans lequel lire les valeurs pour get() */
     if ((fd = fopen(argv[i], "r")) == NULL) {
-      fprintf(stderr, "erreur: Cannot open %s\n", argv[i]);
+      fprintf(stderr, "erreur: Cannot open data file %s\n", argv[i]);
       exit(USAGE_ERROR);
     }
   }
@@ -100,15 +102,25 @@ int main(int argc, char **argv) {
    * a la premiere mais de continuer l'analyse pour en trouver d'autres, quand
    * c'est possible.
    */
+   opened_filename = (char*)calloc(strlen(argv[i-1]),sizeof(char));
+   varBuffer = (char*)calloc(1,sizeof(char));
+   strcat(opened_filename,argv[i-1]);
   res = yyparse();
   if (fd != NIL(FILE)) fclose(fd);
   return res ? SYNTAX_ERROR : errorCode;
 }
 
+char** get_var_buffer() {
+	return &varBuffer;
+}
+
+const char* get_filename() {
+	return opened_filename;
+}
 
 void setError(int code) {
   errorCode = code;
-  if (code != NO_ERROR) { noEval = TRUE; }
+  if (code != NO_ERROR) { Eval = FALSE; }
 }
 
 /* Lecture dynamique d'une valeur, indiquee par get() dans une expression.
@@ -187,9 +199,9 @@ VarDeclP makeVar(char *name) {
 void declVar(char *name, TreeP tree) {
   VarDeclP pvar = makeVar(name);
   checkId(tree, currentScope);
-  pprintVar(pvar, tree);
-  if (! noEval) { pvar->val = eval(tree, currentScope); }
-  pprintValueVar(pvar);
+  genVar(pvar, tree, &varBuffer);
+  if ( Eval) { pvar->val = eval(tree, currentScope); }
+  genValueVar(pvar, &varBuffer);
   currentScope = addToScope(currentScope, pvar, TRUE);
 }
 
@@ -454,17 +466,22 @@ int eval(TreeP tree, VarDeclP decls) {
 }
 
 int evalMain(TreeP tree) {
- int res;
   /* faire l'impression de l'expression principale avant d'evaluer le resultat,
    *  au cas ou il y aurait une erreur pendant l'evaluation
    */
-  pprintMain(tree);
   checkId(tree, currentScope);
-  if (noEval) {
-    fprintf(stderr, "\nPhase d'evaluation ignoree.\n");
+  /*generation du code source C equivalent si demande*/
+  if(! Cgen){
+	fprintf(stderr, "\nPhase de generation de code C ignoree.\n");
   } else {
-      res = eval(tree, currentScope);
-      printf("\nresult: %d\n", res);
+	genMain(tree);
+	pprint(tree);
+  }
+  /*interpretation du code si demande*/
+  if (! Eval) {
+    fprintf(stderr, "\nPhase d'interpretation ignoree.\n");
+  } else {
+    eval(tree, currentScope);
   }
   return errorCode;
 }
