@@ -15,10 +15,10 @@ int eval(TreeP tree, VarDeclP decls);
 /* Niveau de 'verbosite'.
  * Par defaut, n'imprime que le resultat et les messages d'erreur
  */
-bool verbose = FALSE;
+bool Cgen = FALSE;
 
 /* Evaluation ou pas. Par defaut, on evalue les expressions */
-bool noEval = FALSE;
+bool Eval = FALSE;
 
 /* code d'erreur a retourner */
 int errorCode = NO_ERROR;
@@ -58,11 +58,11 @@ int main(int argc, char **argv) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
       case 'c': case 'C':
-	verbose = TRUE; continue;
-      case 'e': case 'E':
-	noEval = TRUE; continue;
+	Cgen = TRUE; continue;
+      case 'i': case 'I':
+	Eval = TRUE; continue;
       case '?': case 'h': case 'H':
-	fprintf(stderr, "Appel: tp -e -c programme.txt donnees.dat\n");
+	fprintf(stderr, "Appel: tp -i -c programme.txt donnees.dat\n");
 	exit(USAGE_ERROR);
       default:
 	fprintf(stderr, "Option inconnue: %c\n", argv[i][1]);
@@ -123,7 +123,7 @@ const char* get_filename() {
 
 void setError(int code) {
   errorCode = code;
-  if (code != NO_ERROR) { noEval = TRUE; }
+  if (code != NO_ERROR) { Eval = FALSE; }
 }
 
 /* Lecture dynamique d'une valeur, indiquee par get() dans une expression.
@@ -203,7 +203,7 @@ void declVar(char *name, TreeP tree) {
   VarDeclP pvar = makeVar(name);
   checkId(tree, currentScope);
   pprintVar(pvar, tree, &varBuffer);
-  if (! noEval) { pvar->val = eval(tree, currentScope); }
+  if ( Eval) { pvar->val = eval(tree, currentScope); }
   pprintValueVar(pvar, &varBuffer);
   currentScope = addToScope(currentScope, pvar, TRUE);
 }
@@ -473,13 +473,18 @@ int evalMain(TreeP tree) {
   /* faire l'impression de l'expression principale avant d'evaluer le resultat,
    *  au cas ou il y aurait une erreur pendant l'evaluation
    */
-  pprintMain(tree);
   checkId(tree, currentScope);
-  if (noEval) {
-    fprintf(stderr, "\nPhase d'evaluation ignoree.\n");
+  //generation du code source C equivalent si demande
+  if(! Cgen){
+	fprintf(stderr, "\nPhase de generation de code C ignoree.\n");
+  } else {
+	pprintMain(tree);
+  }
+  //interpretation du code si demande
+  if (! Eval) {
+    fprintf(stderr, "\nPhase d'interpretation ignoree.\n");
   } else {
       res = eval(tree, currentScope);
-      printf("\nresult: %d\n", res);
   }
   return errorCode;
 }

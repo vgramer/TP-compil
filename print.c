@@ -4,8 +4,8 @@
 #include "tp_y.h"
 
 extern void setError();
-extern bool verbose;
-extern bool noEval;
+extern bool Cgen;
+extern bool Eval;
 
 /* global variables used for C source code generation */
 int indentation = 1;
@@ -38,7 +38,7 @@ void printIndentation(char** generated_code){
 }
 
 void pprintVar(VarDeclP decl, TreeP tree, char** var_decls_buffer) {
-  if (! verbose) return;
+  if (! Cgen) return;
   printIndentation(var_decls_buffer);
   concate(var_decls_buffer,"int ");
   concate(var_decls_buffer,decl->name);
@@ -52,8 +52,8 @@ void pprintVar(VarDeclP decl, TreeP tree, char** var_decls_buffer) {
 
 void pprintValueVar(VarDeclP decl, char** generated_code) {
   char value[256] = "";
-  if (! verbose) return;
-  if (! noEval) {
+  if (! Cgen) return;
+  if ( Eval) {
     sprintf(value,"%d", decl->val);
     printIndentation(generated_code);
     concate(generated_code, "// [Valeur: ");
@@ -258,7 +258,7 @@ void pprintUnaire(TreeP tree, char* op, char** generated_code) {
 /* Affichage recursif d'un arbre representant une expression. */
 void pprint(TreeP tree, char** generated_code) {
 	char value[256];
-  if (! verbose ) return;
+  if (! Cgen ) return;
   if (tree == NIL(Tree)) { 
     printf("Unknown"); return;
   }
@@ -316,7 +316,7 @@ void pprintMain(TreeP tree) {
 
   generated_code = (char*) calloc(1,sizeof(char));
   
-  if (! verbose) return;
+  if (! Cgen) return;
   output_file = fopen(output_filename,"w+");
   if(!output_file) {
 	  printf("ne peut compiler dans le fichier '%s'. verifiez les autorisations.\n", output_filename);
