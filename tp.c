@@ -12,12 +12,12 @@ extern int yylineno;
 void checkId(TreeP tree, VarDeclP decls);
 int eval(TreeP tree, VarDeclP decls);
 
-/* Niveau de 'verbosite'.
- * Par defaut, n'imprime que le resultat et les messages d'erreur
+/* Generation de code source C
+ * Par defaut ne génère pas de code C
  */
 bool Cgen = FALSE;
 
-/* Evaluation ou pas. Par defaut, on evalue les expressions */
+/* Interpretation ou pas. Par defaut, on n'evalue pas les expressions */
 bool Eval = FALSE;
 
 /* code d'erreur a retourner */
