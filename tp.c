@@ -474,13 +474,13 @@ int evalMain(TreeP tree) {
    *  au cas ou il y aurait une erreur pendant l'evaluation
    */
   checkId(tree, currentScope);
-  //generation du code source C equivalent si demande
+  /*generation du code source C equivalent si demande*/
   if(! Cgen){
 	fprintf(stderr, "\nPhase de generation de code C ignoree.\n");
   } else {
 	pprintMain(tree);
   }
-  //interpretation du code si demande
+  /*interpretation du code si demande*/
   if (! Eval) {
     fprintf(stderr, "\nPhase d'interpretation ignoree.\n");
   } else {
