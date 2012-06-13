@@ -469,7 +469,6 @@ int eval(TreeP tree, VarDeclP decls) {
 }
 
 int evalMain(TreeP tree) {
- int res;
   /* faire l'impression de l'expression principale avant d'evaluer le resultat,
    *  au cas ou il y aurait une erreur pendant l'evaluation
    */
@@ -484,7 +483,7 @@ int evalMain(TreeP tree) {
   if (! Eval) {
     fprintf(stderr, "\nPhase d'interpretation ignoree.\n");
   } else {
-      res = eval(tree, currentScope);
+    eval(tree, currentScope);
   }
   return errorCode;
 }
