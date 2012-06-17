@@ -8,6 +8,7 @@
 %token<D> AFF
 %token<S> ID STR VAR
 %token<I> CST
+%token PAR
 %token<C> RELOP
 %token IF THEN ELSE ENDIF
 %token PUT
@@ -51,7 +52,7 @@
 %left AND OR
 %left NOT
 %left BINOR BINAND BINXOR
-
+%left PAR
 
 %{
 #include "tp.h"     /* les definition des types et les etiquettes des noeuds */
@@ -104,15 +105,16 @@ $2..n sont les composantes(fils) de l'arbre que nous somme en train de construir
 */ 
 expr : ADD expr {$$ = makeTree(PLUS, 1, $2);}
 | SUB expr {$$ = makeTree(MINUS, 1, $2);}
-| expr ADD expr {$$ = makeTree(ADD, 2, $1,$3);}
-| expr SUB expr {$$ = makeTree(SUB, 2, $1,$3);}
-| expr MUL expr {$$ = makeTree(MUL, 2, $1,$3);}
-| expr DIV expr {$$ = makeTree(DIV, 2, $1,$3);}
+| '(' expr ')' {$$ = makeTree(PAR, 1, $2);}
+| expr ADD expr {$$ = makeTree(ADD, 2, $1, $3);}
+| expr SUB expr {$$ = makeTree(SUB, 2, $1, $3);}
+| expr MUL expr {$$ = makeTree(MUL, 2, $1, $3);}
+| expr DIV expr {$$ = makeTree(DIV, 2, $1, $3);}
 | expr BINXOR expr {$$ = makeTree(BINXOR, 2, $1, $3);}
 | expr BINOR  expr {$$ = makeTree(BINOR , 2, $1, $3);}
 | expr BINAND expr {$$ = makeTree(BINAND, 2, $1, $3);}
-| CST{ $$ = makeLeafInt(CST , $1);}
-| ID { $$ = makeLeafStr(ID,$1);}
+| CST{ $$ = makeLeafInt(CST, $1);}
+| ID { $$ = makeLeafStr(ID , $1);}
 | get
 ;
 
@@ -175,6 +177,7 @@ instrL: instr
 
 /*affectation*/
 aff: ID AFF expr {$$ = makeTree(AFF,2,makeLeafStr(ID,$1),$3);}
+| ID AFF aff {$$ = makeTree(AFF,2,makeLeafStr(ID,$1),$3);}
 ;
 
 /* une declaration de variable ou de fonction, terminee par un ';'. */

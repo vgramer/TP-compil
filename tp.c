@@ -9,6 +9,11 @@ extern int yylineno;
 void checkId(TreeP tree, VarDeclP decls);
 int eval(TreeP tree, VarDeclP decls);
 
+/* Affichage en version prefixe du code
+ * Par defaut ne l'affiche pas
+ */
+bool Pprint = FALSE;
+
 /* Generation de code source C
  * Par defaut ne génère pas de code C
  */
@@ -50,12 +55,15 @@ VarDeclP currentScope = NIL(VarDecl);
 int main(int argc, char **argv) {
   int fi;
   int i, res;
+  int size;
 
   for(i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
       case 'c': case 'C':
 	Cgen = TRUE; continue;
+	  case 'p': case 'P':
+	Pprint = TRUE; continue;
       case 'i': case 'I':
 	Eval = TRUE; continue;
       case '?': case 'h': case 'H':
@@ -102,8 +110,9 @@ int main(int argc, char **argv) {
    * a la premiere mais de continuer l'analyse pour en trouver d'autres, quand
    * c'est possible.
    */
-   opened_filename = (char*)calloc(strlen(argv[i-1]),sizeof(char));
-   varBuffer = (char*)calloc(1,sizeof(char));
+   size = strlen(argv[i-1])+1;
+   opened_filename = (char*)calloc(size, sizeof(char));
+   varBuffer = (char*)calloc(1, sizeof(char));
    strcat(opened_filename,argv[i-1]);
   res = yyparse();
   if (fd != NIL(FILE)) fclose(fd);
@@ -232,7 +241,10 @@ TreeP makeTree(short op, int nbChildren, ...) {
 
 /* Retourne le rankieme fils d'un arbre (de 0 a n-1) */
 TreeP getChild(TreeP tree, int rank) {
-  return tree->u.children[rank];
+	if(rank < tree->nbChildren)
+		return tree->u.children[rank];
+	printf("error, no such child %d/%d in tree %d\n",rank,tree->nbChildren,tree->op);
+	return 0;
 }
 
 
@@ -391,6 +403,8 @@ int eval(TreeP tree, VarDeclP decls) {
 	return eval(getChild(tree,1),decls);
   case CST:
     return(tree->u.val);
+  case PAR:
+    return (eval(getChild(tree,0), decls));
   case EQ:
     return (eval(getChild(tree, 0), decls) == eval(getChild(tree, 1), decls));
   case NE:
@@ -472,14 +486,19 @@ int evalMain(TreeP tree) {
   checkId(tree, currentScope);
   /*generation du code source C equivalent si demande*/
   if(! Cgen){
-	fprintf(stderr, "\nPhase de generation de code C ignoree.\n");
+	printf("\nPhase de generation de code C ignoree.\n");
   } else {
 	genMain(tree);
+  }
+  /* affichage prefixe */
+  if(! Pprint){
+	printf("\nAffichage prefixe ignore.\n");
+  } else {
 	pprint(tree);
   }
   /*interpretation du code si demande*/
   if (! Eval) {
-    fprintf(stderr, "\nPhase d'interpretation ignoree.\n");
+    printf("\nPhase d'interpretation ignoree.\n");
   } else {
     eval(tree, currentScope);
   }
@@ -506,6 +525,7 @@ void checkId(TreeP tree, VarDeclP decls) {
     setError(CONTEXT_ERROR);
     return;
   case CST:
+  case PAR:
   case GET:
   case BINAND: case BINOR: case BINXOR:
   case AFF: case INSTRL: case ARGL:

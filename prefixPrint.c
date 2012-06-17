@@ -3,8 +3,7 @@
 #include "prefixPrint.h"
 
 extern void setError();
-extern bool Cgen;
-extern bool Eval;
+extern bool Pprint;
 
 /* global variables used for C source code generation */
 int indent = 1;
@@ -79,7 +78,17 @@ void pprintPUT(TreeP tree) {
 void pprintGet() {
   printf("get()");
 }
-
+void pprintAffectation(TreeP tree){
+	int old_indent = indent;
+	printIndentation();
+	pprint(getChild(tree,0));
+	printf(" := ");
+	indent = 0;
+	pprint(getChild(tree,1));
+	indent = old_indent;
+	if(getChild(tree, 1)->op != AFF)
+		printf(";");
+}
 /* Affichage de la boucle pour */
 void pprintPour(TreeP tree) {
   printIndentation();
@@ -134,7 +143,7 @@ void pprintUnaire(TreeP tree, char* op) {
 
 /* Affichage recursif d'un arbre representant une expression. */
 void pprint(TreeP tree) {
-  if (! Cgen ) return;
+  if (! Pprint ) return;
   if (tree == NIL(Tree)) { 
     printf("Unknown"); return;
   }
@@ -157,10 +166,13 @@ void pprint(TreeP tree) {
   case BINOR: pprintPrefixTree2(tree, " binor "); break;
   case BINXOR:pprintPrefixTree2(tree, " xor "); break;
   case AFF:  
-	printIndentation();
-	pprintTree2(tree, " := ");
-	printf(";");
+	pprintAffectation(tree);
 	break;
+  case PAR:
+    printf("(");
+    pprint(getChild(tree, 0));
+    printf(")");
+    break;
   case INSTRL:pprintTree2(tree, " \n "); break; 
   case ARGL:  pprintTree2(tree, ", "); break;
   case PUT:   pprintPUT(tree);break;

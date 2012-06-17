@@ -258,6 +258,7 @@ void genUnaire(TreeP tree, char* op, char** generated_code) {
 void gen(TreeP tree, char** generated_code) {
 	char value[256];
   if (! Cgen ) return;
+  /*printf("tree->op : %d",tree->op);*/
   if (tree == NIL(Tree)) { 
     printf("Unknown"); return;
   }
@@ -284,6 +285,11 @@ void gen(TreeP tree, char** generated_code) {
 	genTree2(tree, " = ",generated_code);
 	concate(generated_code,";");
 	break;
+  case PAR:
+    concate(generated_code,"(");
+    gen(getChild(tree, 0), generated_code);
+    concate(generated_code,")");
+    break;
   case INSTRL:genTree2(tree, "\n",generated_code); break; 
   case ARGL:  genTree2(tree, ", ",generated_code); break;
   case PUT:   genPUT(tree,generated_code);break;
@@ -310,11 +316,10 @@ void genMain(TreeP tree) {
   char* generated_code = NULL;
   FILE* output_file = NULL;
   char** VarBuffer = get_var_buffer();
-  char output_filename[256] = "";
-  sprintf(output_filename,"%s.c",get_filename());
+  char* output_filename = calloc(1,sizeof(char));
+  concate(&output_filename,get_filename());concate(&output_filename,".c");
 
   generated_code = (char*) calloc(1,sizeof(char));
-  
   if (! Cgen) return;
   output_file = fopen(output_filename,"w+");
   if(!output_file) {

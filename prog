@@ -3,7 +3,15 @@ VAR y:= 1;
 DEBUT
 /* debut du programme :
  * Instruction 1 */
+/* x = 6, donc x = 6 + 3 = 9 apres cette instruction */
 x := x+3;
+ECRIRE("x : ", x);
+ECRIRE("y : ", y); 
+/* ( 9 + 3) * 2 = 24, donc y = 24 et x = 24 apres cette instruction */
+y := x := (x+3)*2;
+
+ECRIRE("x : ", x);
+ECRIRE("y : ", y);
 
 y := y+1;
 ECRIRE ("ancien X : ",x);
@@ -29,10 +37,8 @@ ECRIRE ("nouvelle X :",x);
 x:= x/2;
 TANTQUE x>4 FINTANTQUE
 
+
 ECRIRE("EPREUVE DU BIT A BIT : ",1 & 1, 5 & 1,2 | 0, 2| 1, 1 ^ 1, 1 ^ 2);
 /*fin du programme */
-FIN
 
-/* toto
-test // & xor FERznvjuzim'u_(çéfajcn'_")*$*
-*/
+FIN
