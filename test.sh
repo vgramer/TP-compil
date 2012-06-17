@@ -83,7 +83,6 @@ function testDir () {
   echo "Directory $dir"
   for file in $dir/*.txt
   do
-    echo $file
     if [[ -f $file ]]
     then
       testFile $file
@@ -115,8 +114,9 @@ function help () {
   echo "       -C(lean)      : remove output and result files associated to test file"
   echo "       -a(ccept)     : move output file to result file unless an error is detected"
   echo "       -A(ccept)     : move output file to result file even if an error is detected"
-  echo "       -v(erbose)    : set mode Verbose 'on'"
-  echo "       -e(noEval)    : prevent from evaluating expressions"
+  echo "       -c(ompile)    : generate C code"
+  echo "       -i(nterprete) : live evaluation of program file"
+  echo "       -p(refix)     : print mathematical expressions using prefixed display"
   exit 0
 }
 
