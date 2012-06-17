@@ -76,7 +76,7 @@ void pprintPUT(TreeP tree) {
 
 /* Affichage d'un GET */
 void pprintGet() {
-  printf("get()");
+  printf("LIRE()");
 }
 void pprintAffectation(TreeP tree){
 	int old_indent = indent;
