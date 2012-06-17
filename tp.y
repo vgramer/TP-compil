@@ -115,7 +115,6 @@ expr : ADD expr {$$ = makeTree(PLUS, 1, $2);}
 | expr BINAND expr {$$ = makeTree(BINAND, 2, $1, $3);}
 | CST{ $$ = makeLeafInt(CST, $1);}
 | ID { $$ = makeLeafStr(ID , $1);}
-| get
 ;
 
 /*une condition*/
@@ -178,6 +177,7 @@ instrL: instr
 /*affectation*/
 aff: ID AFF expr {$$ = makeTree(AFF,2,makeLeafStr(ID,$1),$3);}
 | ID AFF aff {$$ = makeTree(AFF,2,makeLeafStr(ID,$1),$3);}
+| ID AFF get {$$ = makeTree(AFF,2,makeLeafStr(ID,$1),$3);}
 ;
 
 /* une declaration de variable ou de fonction, terminee par un ';'. */

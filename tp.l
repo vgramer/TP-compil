@@ -32,6 +32,7 @@ int keywordOrId() {
   if (! strcmp(yytext, "SINON")) return(ELSE);
   if (! strcmp(yytext, "FINDESI")) return(ENDIF);
   if (! strcmp(yytext, "ECRIRE")) return(PUT);
+  if (! strcmp(yytext, "LIRE")) return(GET);
   if (! strcmp(yytext, "POUR")) return(POUR);
   if (! strcmp(yytext, "ALLANTDE")) return(ALLANTDE);
   if (! strcmp(yytext, "A")) return(JUSQUA);
@@ -39,7 +40,6 @@ int keywordOrId() {
   if (! strcmp(yytext, "FINPOUR")) return(FINPOUR);
   if (! strcmp(yytext, "TANTQUE")) return(TANTQUE);
   if (! strcmp(yytext, "FINTANTQUE")) return(FINTANTQUE);
-  if (! strcmp(yytext, "get")) return(GET);
   if (! strcmp(yytext, "VAR")) return(VARDECL);
   /* si ce n'est pas un mot-clef, sauvegarder le texte de l'identificateur
    * et renvoyer le token associe aux identificateurs

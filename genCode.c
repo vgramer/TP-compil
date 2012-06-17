@@ -152,8 +152,8 @@ void genPUT(TreeP tree, char** generated_code) {
 }
 
 /* Affichage d'un GET */
-void genGet() {
-  printf("get()");
+void genGet(char** generated_code) {
+  concate(generated_code, "__ask_int_value()");
 }
 
 /* Affichage de la boucle pour */
@@ -293,7 +293,7 @@ void gen(TreeP tree, char** generated_code) {
   case INSTRL:genTree2(tree, "\n",generated_code); break; 
   case ARGL:  genTree2(tree, ", ",generated_code); break;
   case PUT:   genPUT(tree,generated_code);break;
-  case GET:   genGet(); break;
+  case GET:   genGet(generated_code); break;
   case NOT:   genUnaire(tree, " !",generated_code); break;
   case PLUS:  genUnaire(tree, " +",generated_code); break;
   case MINUS: genUnaire(tree, " -",generated_code); break; 
@@ -326,10 +326,18 @@ void genMain(TreeP tree) {
 	  printf("ne peut compiler dans le fichier '%s'. verifiez les autorisations.\n", output_filename);
 	  return;
 	}
-  fprintf(output_file,"#include <stdio.h>\n#include <stdlib.h>\n\nint main()\n{\n%s\n",*VarBuffer);
+	printf("\nCompilation du code C dans '%s'...",output_filename);
+  fprintf(output_file,"#include <stdio.h>\n#include <stdlib.h>\n\n");
+  fprintf(output_file, "int __get_int_value(){\n");
+  fprintf(output_file, "\tint value = 0;");
+  fprintf(output_file, "\tprintf(\"Veuillez saisir un nombre entier:\");\n");
+  fprintf(output_file, "\tscanf(\"%%d\",&value);\n");
+  fprintf(output_file, "\treturn value;\n}\n");
+  fprintf(output_file, "\nint main()\n{\n%s\n",*VarBuffer);
   gen(tree,&generated_code);
   concate(&generated_code, "\n");
   genIndentation(&generated_code);
   fprintf(output_file,"%sreturn EXIT_SUCCESS;\n}\n\n",generated_code);
   fflush(NULL);
+  printf("\nCompilation terminee.\n");
 }

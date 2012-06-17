@@ -132,7 +132,7 @@ void setError(int code) {
   if (code != NO_ERROR) { Eval = FALSE; }
 }
 
-/* Lecture dynamique d'une valeur, indiquee par get() dans une expression.
+/* Lecture dynamique d'une valeur, indiquee par LIRE() dans une expression.
  * Exemple: x := 3 + get(); begin x end
  */
 int getValue() {
