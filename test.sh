@@ -25,7 +25,7 @@ function testFile () {
   if [[ ! $clean && ! $cleanAll && ( $testAll || ! -f $res ) && -f $file ]]
   then
     echo "Test $file $dat"
-    ./tp $verbose $noEval $file $dat >$out 2>&1
+    ./tp $compile $interpret $prefix $file $dat >$out 2>&1
     # calcul du message en etudiant le fichier de sortie
     if [[ -f $res ]]
     then
@@ -83,6 +83,7 @@ function testDir () {
   echo "Directory $dir"
   for file in $dir/*.txt
   do
+    echo $file
     if [[ -f $file ]]
     then
       testFile $file
@@ -128,8 +129,9 @@ while [[ $# > 0 ]]; do
   elif [[ $1 =~ -C ]]; then cleanAll=1
   elif [[ $1 =~ -a ]]; then accept=1
   elif [[ $1 =~ -A ]]; then acceptAll=1
-  elif [[ $1 =~ -v ]]; then verbose=-v
-  elif [[ $1 =~ -e ]]; then noEval=-e
+  elif [[ $1 =~ -p ]]; then prefix=-p
+  elif [[ $1 =~ -c ]]; then compile=-c
+  elif [[ $1 =~ -i ]]; then interpret=-i
   elif [[ -d $1 ]]; then testDir $1
   elif [[ -f $1 && $1 =~ .*txt ]]; then testFile $1
   else help 1 "Bad argument : $1"
